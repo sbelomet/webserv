@@ -1,0 +1,28 @@
+
+#include <iostream>
+#include "Config.hpp"
+
+int main(int argc, char **argv)
+{
+    Config  config;
+
+    if (argc != 2)
+        std::cout << "Need a config file" << std::endl;
+    else
+    {
+        config.makeConfig(argv[1]);
+        std::map<std::string, Section>::iterator it;
+        for (it = config.getConfig().begin(); it != config.getConfig().end(); it++)
+        {
+            std::cout << it->first << std::endl;
+            Section section = it->second;
+            std::map<std::string, std::string>::iterator sub_it;
+            for (sub_it = section.getSection().begin(); sub_it != section.getSection().end(); sub_it++)
+            {
+                std::cout << sub_it->first << " : " << sub_it->second << std::endl;
+            }
+            std::cout << std::endl;
+        }
+    }
+    return (0);
+}
