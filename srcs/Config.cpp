@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:09 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/20 11:55:43 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/08/20 14:57:36 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,12 +110,12 @@ static bool   check_closing( std::string const key )
 
 static bool isWhitespace(char c)
 {
-	return (c == ' ' || c == '\t' || c == '\n' || c == '\r');
+	return (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\0');
 }
 
 static bool isSeparatorNW(char c)
 {
-	return (c == '{' || c == '}' || c == ';' || c == '\0' || c == '#');
+	return (c == '{' || c == '}' || c == ';' || c == '#');
 }
 
 static bool isSeparator(char c)
@@ -151,19 +151,21 @@ void    Config::makeConfig( std::string const &filePath )
 	bool inLocation = false;
 	bool awaitingParenth = false;
 	bool afterSepNW = false;
+	bool afterVar = false;
 	std::string line;
 	size_t lineCount = 0;
-	while (getline(infile, line))
+	while (getline(infile, line)) // read line by line
 	{
 		lineCount++; // increment line count
 
 		if (onlyWhitespaces(line)) // ignore blank lines
 			continue;
 
-		for (std::string::iterator it = line.begin(); it != line.end(); it++)
+		for (std::string::iterator it = line.begin(); it != line.end(); it++) // read each line character by character
 		{
 			std::string::iterator kw_end;
 			std::string keyword;
+			std::string indent = "";
 
 			// ignore comments
 			if (*it == '#')
@@ -173,10 +175,17 @@ void    Config::makeConfig( std::string const &filePath )
 			if (isWhitespace(*it))
 				continue;
 
-			if (*it == ';')
+			// if we're on a semicolon, change afterSepNW to true to indicate next keyword is a variable
+			if (!afterVar && *it == ';')
 			{
+				std::cerr << "ERROR on line " << lineCount << ": Semicolon not after variable declaration" << std::endl;
+				return ;
+			}
+			else if (afterVar && *it == ';')
+			{
+				std::cout << "yes" << std::endl;
 				afterSepNW = true;
-				std::cout << "SEMICOLON" << std::endl;
+				afterVar = false;
 			}
 
 			// if awaiting parenthesis, check for the parenthesis
@@ -186,6 +195,7 @@ void    Config::makeConfig( std::string const &filePath )
 				{
 					awaitingParenth = false;
 					afterSepNW = true;
+					afterVar = false;
 				}
 				else if (isSeparator(*it))
 				{
@@ -193,7 +203,7 @@ void    Config::makeConfig( std::string const &filePath )
 				}
 				else
 				{
-					std::cerr << "ERROR on line " << lineCount << ": Missing parenthesis after scope keyword" << std::endl;
+					std::cerr << "ERROR on line " << lineCount << ": Missing or obstructed opening parenthesis after scope keyword" << std::endl;
 					return ;
 				}
 			}
@@ -204,7 +214,6 @@ void    Config::makeConfig( std::string const &filePath )
 				keyword = line.substr(it - line.begin(), (kw_end - line.begin()) - (it - line.begin()));
 
 				std::string color = MAGENTA;
-				std::string indent = "";
 				if (inServer)
 				{
 					color = CYAN;
@@ -218,20 +227,18 @@ void    Config::makeConfig( std::string const &filePath )
 				{
 					color = RED;
 					afterSepNW = false;
+					afterVar = true;
 				}
 				std::cout << color << indent << keyword << RESET << std::endl;
+
 				it = kw_end;
-				if (isSeparatorNW(*it))
-				{
-					afterSepNW = true;
-				}
 			}
 
 			// if keyword is server, then check for parenthesis and await one if not found (also set inServer to true)
 			if (keyword == "server")
 			{
 				inServer = true;
-				while (it != line.end() && *it && isSeparator(*it) && *it != '{')
+				while (it != line.end() && *it && isWhitespace(*it) && *it != '{')
 				{
 					it++;
 				}
@@ -242,8 +249,13 @@ void    Config::makeConfig( std::string const &filePath )
 				}
 				if (*it != '{')
 				{
-					std::cerr << "ERROR on line " << lineCount << ": Missing parenthesis after server keyword" << std::endl;
+					std::cerr << "ERROR on line " << lineCount << ": Missing or obstructed opening parenthesis after server keyword" << std::endl;
 					return ;
+				}
+				if (*it == '{')
+				{
+					afterSepNW = true;
+					afterVar = false;
 				}
 			}
 
@@ -258,17 +270,20 @@ void    Config::makeConfig( std::string const &filePath )
 			if (keyword == "location")
 			{
 				inLocation = true;
-				if (*it != ' ' || isSeparator(*(it + 1)))
+				while (it != line.end() && isWhitespace(*it))
 				{
-					std::cerr << "ERROR on line " << lineCount << ": Invalid location value" << std::endl;
+					it++;
+				}
+				if (it == line.end() || isSeparator(*it))
+				{
+					std::cerr << "ERROR on line " << lineCount << ": Missing or obstructed location value" << std::endl;
 					return ;
 				}
-				it++;
 				std::string::iterator loc_end = findKeywordEnd(it, line.end());
 				std::string location = line.substr(it - line.begin(), (loc_end - line.begin()) - (it - line.begin()));
-				std::cout << GREEN << "  " << location << RESET << std::endl;
+				std::cout << GREEN << indent << location << RESET << std::endl;
 				it = loc_end;
-				while (it != line.end() && *it && isSeparator(*it) && *it != '{')
+				while (it != line.end() && *it && isWhitespace(*it) && *it != '{')
 				{
 					it++;
 				}
@@ -279,12 +294,62 @@ void    Config::makeConfig( std::string const &filePath )
 				}
 				if (*it != '{')
 				{
-					std::cerr << "ERROR on line " << lineCount << ": Missing parenthesis after loction keyword" << std::endl;
+					std::cerr << "ERROR on line " << lineCount << ": Missing or obstructed opening parenthesis after loction keyword" << std::endl;
 					return ;
 				}
 				if (*it == '{')
 				{
 					afterSepNW = true;
+					afterVar = false;
+				}
+			}
+
+			// if we're after a variable, get all values until semicolon
+			if (afterVar)
+			{
+				int nbvals = 0;
+				while (it != line.end() && *it && *it != ';')
+				{
+					while (it != line.end() && *it && isWhitespace(*it))
+					{
+						it++;
+					}
+					if (it == line.end())
+						break;
+					if (*it == ';')
+					{
+						if (nbvals == 0) // if no value is assigned, throw error
+						{
+							std::cerr << "ERROR on line " << lineCount << ": Assigning no value is forbidden" << std::endl;
+							return ;
+						}
+						else
+						{
+							afterSepNW = true;
+							afterVar = false;
+							break;
+						}
+					}
+					std::string::iterator val_end = findKeywordEnd(it, line.end());
+					std::string value = line.substr(it - line.begin(), (val_end - line.begin()) - (it - line.begin()));
+					std::cout << YELLOW << indent << value << RESET << std::endl;
+					it = val_end;
+					nbvals++;
+					if (*it == ';')
+					{
+						afterSepNW = true;
+						afterVar = false;
+					}
+				}
+				if (it == line.end())
+				{
+					std::cerr << "ERROR on line " << lineCount << ": Definition of variable not on one line" << std::endl;
+					return ;
+				}
+				if (!nbvals && *it == ';')
+				{
+					std::cerr << "ERROR on line " << lineCount << ": Assigning no value is forbidden" << std::endl;
+					return ;
 				}
 			}
 
@@ -301,6 +366,7 @@ void    Config::makeConfig( std::string const &filePath )
 				}
 			}
 
+			// the for loop should check this, but sometimes it doesn't
 			if (it == line.end())
 				break;
 		}
