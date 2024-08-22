@@ -6,17 +6,22 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:09 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/20 14:57:36 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/08/22 13:57:56 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
-Config::Config( void )
+
+Config::Config( void ) : _root(""), _host(""), _index(""), _client_max_body_size(-1)
 {}
 
 Config::~Config( void )
 {
-	// delete if malloced
+	std::vector<Location *> locations = getLocations();
+	for (size_t i = 0; i < locations.size(); i++)
+	{
+		delete locations[i];
+	}
 }
 
 Config::Config( Config const &copy )
@@ -27,133 +32,133 @@ Config::Config( Config const &copy )
 Config const    &Config::operator=( Config const &copy )
 {
 	if (this != &copy)
-		this->setConfig(copy.getConfig());
+	{
+		setRoot(copy.getRoot());
+		setHost(copy.getHost());
+		setIndex(copy.getIndex());
+		setListen(copy.getListen());
+		setLocations(copy.getLocations());
+		setServerName(copy.getServerName());
+		setErrorPages(copy.getErrorPages());
+		setMaxClientBody(copy.getMaxClientBody());
+	}
 	return (*this);
 }
 
 /* */
 
-char const	*Config::FileException::what() const throw()
+std::string const	&Config::getRoot( void ) const
 {
-	return ("Error: could not open file.");
+	return (_root);
 }
 
-/* */
-
-std::map<std::string, Section>  &Config::getConfig( void )
+std::string const	&Config::getHost( void ) const
 {
-	return (this->_config);
+	return (_host);
 }
 
-void    Config::setConfig( std::map<std::string, Section> const &config )
+std::string const	&Config::getIndex( void ) const
 {
-	this->_config = config;
+	return (_index);
 }
 
-std::map<std::string, Section> const    &Config::getConfig( void ) const
+unsigned long const	&Config::getMaxClientBody( void ) const
 {
-	return (this->_config);
+	return (_client_max_body_size);
 }
 
-void    Config::insertSection( std::string const &key, Section const &section )
+std::vector<Location *> const	&Config::getLocations( void ) const
 {
-	this->_config[key] = section;
+	return (_locations);
 }
 
-Section &Config::getSectionFromMap( std::string const &key )
+std::vector<std::string> const	&Config::getListen( void ) const
 {
-	return (this->_config[key]);
+	return (_listen);
 }
 
-/* */
-/*
-static std::string const    trim( std::string line )
+std::vector<std::string> const	&Config::getServerName( void ) const
 {
-	size_t  end = 0;
-	size_t  start = 0;
-	std::string::iterator   it;
-	for (it = line.begin(); it != line.end(); it++)
-	{
-		if (isspace(*it))
-			start++;
-		else
-			break ;
-	}
-	for (it = line.end(); it != line.begin(); it--)
-	{
-		if (isspace(*it))
-			end++;
-		else
-			break ;
-	}
-	return (line.substr(start, (end - (line.size() - 1))));
-}
-static bool   check_header( std::string const value )
-{
-	for (size_t i = 0; i < value.size(); i++)
-	{
-		if (value[i] == '{')
-			return (true);
-	}
-	return (false);
+	return (_server_name);
 }
 
-static bool   check_closing( std::string const key )
+std::map<short, std::string> const	&Config::getErrorPages( void ) const
 {
-	for (size_t i = 0; i < key.size(); i++)
-	{
-		if (key[i] == '}')
-			return (true);
-	}
-	return (false);
-} */
-
-static bool isWhitespace(char c)
-{
-	return (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\0');
+	return (_error_pages);
 }
 
-static bool isSeparatorNW(char c)
+/*  */
+
+void	Config::setRoot( std::string const &root )
 {
-	return (c == '{' || c == '}' || c == ';' || c == '#');
+	_root = root;
 }
 
-static bool isSeparator(char c)
+void	Config::setHost( std::string const &host )
 {
-	return (isWhitespace(c) || isSeparatorNW(c));
+	_host = host;
 }
 
-static bool onlyWhitespaces(const std::string &str)
+void	Config::setIndex( std::string const &index )
 {
-	for (size_t i = 0; i < str.size(); i++)
-	{
-		if (!isWhitespace(str[i]))
-			return false;
-	}
-	return true;
+	_index = index;
 }
 
-static std::string::iterator findKeywordEnd(std::string::iterator it, std::string::iterator end)
+void	Config::setListen( std::vector<std::string> const &listen )
 {
-	while (it != end && !isSeparator(*it))
-		it++;
-	return it;
+	_listen = listen;
 }
 
-void    Config::makeConfig( std::string const &filePath )
+void	Config::setMaxClientBody( unsigned long const &maxClientBody )
 {
-	std::string     curr_section;
-	std::ifstream   infile(filePath.c_str());
-	if (!infile.is_open())
-		throw (FileException());
+	_client_max_body_size = maxClientBody;
+}
 
-	bool inServer = false;
-	bool inLocation = false;
-	bool awaitingParenth = false;
-	bool afterSepNW = false;
+void	Config::setLocations( std::vector<Location *> const &locations )
+{
+	_locations = locations;
+}
+
+void	Config::setServerName( std::vector<std::string> const &serverName )
+{
+	_server_name = serverName;
+}
+
+void	Config::setErrorPages( std::map<short, std::string> const &errorPages )
+{
+	_error_pages = errorPages;
+}
+
+/*  */
+
+void	Config::pushListen( std::string const &listen )
+{
+	_listen.push_back(listen);
+}
+
+void	Config::pushLocation( Location *&location )
+{
+	_locations.push_back(location);
+}
+
+void	Config::pushServerName( std::string const &serverName )
+{
+	_server_name.push_back(serverName);
+}
+
+void	Config::insertErrorPage( short const &num, std::string const &file )
+{
+	_error_pages[num] = file;
+}
+
+/*  */
+
+void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitParenth )
+{
+	Location *inLocation = NULL;
+	bool afterSepNW = true;
 	bool afterVar = false;
 	std::string line;
-	size_t lineCount = 0;
 	while (getline(infile, line)) // read line by line
 	{
 		lineCount++; // increment line count
@@ -165,7 +170,7 @@ void    Config::makeConfig( std::string const &filePath )
 		{
 			std::string::iterator kw_end;
 			std::string keyword;
-			std::string indent = "";
+			std::string indent = "  ";
 
 			// ignore comments
 			if (*it == '#')
@@ -175,55 +180,46 @@ void    Config::makeConfig( std::string const &filePath )
 			if (isWhitespace(*it))
 				continue;
 
-			// if we're on a semicolon, change afterSepNW to true to indicate next keyword is a variable
-			if (!afterVar && *it == ';')
+			if (*it == ';')
 			{
-				std::cerr << "ERROR on line " << lineCount << ": Semicolon not after variable declaration" << std::endl;
-				return ;
-			}
-			else if (afterVar && *it == ';')
-			{
-				std::cout << "yes" << std::endl;
-				afterSepNW = true;
-				afterVar = false;
+				std::cerr << "ERROR on line " << lineCount << ": Unexpected semicolon" << std::endl;
+				throw Webserv::NoException();
 			}
 
 			// if awaiting parenthesis, check for the parenthesis
-			if (awaitingParenth)
+			if (awaitParenth)
 			{
 				if (*it == '{')
 				{
-					awaitingParenth = false;
+					awaitParenth = false;
 					afterSepNW = true;
 					afterVar = false;
-				}
-				else if (isSeparator(*it))
-				{
-					continue;
 				}
 				else
 				{
 					std::cerr << "ERROR on line " << lineCount << ": Missing or obstructed opening parenthesis after scope keyword" << std::endl;
-					return ;
+					throw Webserv::NoException();
 				}
 			}
+
 			// if not on seperator, then we're on a keyword
 			if (!isSeparator(*it))
 			{
 				kw_end = findKeywordEnd(it, line.end());
 				keyword = line.substr(it - line.begin(), (kw_end - line.begin()) - (it - line.begin()));
 
-				std::string color = MAGENTA;
-				if (inServer)
-				{
-					color = CYAN;
-					indent = "  ";
-				}
+				std::string color = CYAN;
 				if (inLocation)
 				{
 					indent = "    ";
+					if (afterSepNW)
+					{
+						color = MAGENTA;
+						afterSepNW = false;
+						afterVar = true;
+					}
 				}
-				if (afterSepNW && inServer)
+				if (afterSepNW)
 				{
 					color = RED;
 					afterSepNW = false;
@@ -234,68 +230,48 @@ void    Config::makeConfig( std::string const &filePath )
 				it = kw_end;
 			}
 
-			// if keyword is server, then check for parenthesis and await one if not found (also set inServer to true)
+			// can't declare server scope in server scope
 			if (keyword == "server")
 			{
-				inServer = true;
-				while (it != line.end() && *it && isWhitespace(*it) && *it != '{')
-				{
-					it++;
-				}
-				if (it == line.end())
-				{
-					awaitingParenth = true;
-					break;
-				}
-				if (*it != '{')
-				{
-					std::cerr << "ERROR on line " << lineCount << ": Missing or obstructed opening parenthesis after server keyword" << std::endl;
-					return ;
-				}
-				if (*it == '{')
-				{
-					afterSepNW = true;
-					afterVar = false;
-				}
-			}
-
-			// if we're not in server scope, then no declaration should be made
-			if (!inServer)
-			{
-				std::cerr << "ERROR on line " << lineCount << ": Declaration outside of server scope" << std::endl;
-				return ;
+				std::cerr << "ERROR on line " << lineCount << ": Can't declare server scope in server scope" << std::endl;
+				throw Webserv::NoException();
 			}
 
 			// if keyword is location, check for location value and parenthesis (also set inLocation to true)
 			if (keyword == "location")
 			{
-				inLocation = true;
-				while (it != line.end() && isWhitespace(*it))
+				inLocation = new Location();
+				while (it != line.end() && isWhitespace(*it))	// skip whitespaces
 				{
 					it++;
 				}
-				if (it == line.end() || isSeparator(*it))
+				if (it == line.end() || isSeparator(*it))	// if no value directly after, throw error
 				{
 					std::cerr << "ERROR on line " << lineCount << ": Missing or obstructed location value" << std::endl;
-					return ;
+					throw Webserv::NoException();
 				}
 				std::string::iterator loc_end = findKeywordEnd(it, line.end());
 				std::string location = line.substr(it - line.begin(), (loc_end - line.begin()) - (it - line.begin()));
 				std::cout << GREEN << indent << location << RESET << std::endl;
 				it = loc_end;
+
+				inLocation->setLocation(location);
+				_locations.push_back(inLocation);
+
+				// check for opening parenthesis, if non-whitespace characters are between location value and parenthesis, throw error
 				while (it != line.end() && *it && isWhitespace(*it) && *it != '{')
 				{
 					it++;
 				}
 				if (it == line.end())
 				{
-					awaitingParenth = true;
+					awaitParenth = true;
 					break;
 				}
 				if (*it != '{')
 				{
 					std::cerr << "ERROR on line " << lineCount << ": Missing or obstructed opening parenthesis after loction keyword" << std::endl;
-					return ;
+					throw Webserv::NoException();
 				}
 				if (*it == '{')
 				{
@@ -308,6 +284,7 @@ void    Config::makeConfig( std::string const &filePath )
 			if (afterVar)
 			{
 				int nbvals = 0;
+				std::vector<std::string> values;
 				while (it != line.end() && *it && *it != ';')
 				{
 					while (it != line.end() && *it && isWhitespace(*it))
@@ -321,12 +298,13 @@ void    Config::makeConfig( std::string const &filePath )
 						if (nbvals == 0) // if no value is assigned, throw error
 						{
 							std::cerr << "ERROR on line " << lineCount << ": Assigning no value is forbidden" << std::endl;
-							return ;
+							throw Webserv::NoException();
 						}
 						else
 						{
 							afterSepNW = true;
 							afterVar = false;
+							parseKeyword(keyword, values, lineCount);
 							break;
 						}
 					}
@@ -335,47 +313,189 @@ void    Config::makeConfig( std::string const &filePath )
 					std::cout << YELLOW << indent << value << RESET << std::endl;
 					it = val_end;
 					nbvals++;
+					values.push_back(value);
 					if (*it == ';')
 					{
 						afterSepNW = true;
 						afterVar = false;
+						parseKeyword(keyword, values, lineCount);
 					}
 				}
 				if (it == line.end())
 				{
 					std::cerr << "ERROR on line " << lineCount << ": Definition of variable not on one line" << std::endl;
-					return ;
+					throw Webserv::NoException();
 				}
 				if (!nbvals && *it == ';')
 				{
 					std::cerr << "ERROR on line " << lineCount << ": Assigning no value is forbidden" << std::endl;
-					return ;
+					throw Webserv::NoException();
 				}
 			}
 
 			// if we encounter a closing parenthesis...
 			if (*it == '}')
 			{
-				if (!inLocation) // ...while in server scope, inServer should be set to false
+				if (!inLocation) // ...while in server scope, we return
 				{
-					inServer = false;
+					return ;
 				}
 				if (inLocation) // ...while in location scope, inLocation should be set to false
 				{
-					inLocation = false;
+					inLocation = NULL;
 				}
 			}
 
-			// the for loop should check this, but sometimes it doesn't
+			// the for loop doesn't break if we're exactly at the end of the line, so we break manually
 			if (it == line.end())
 				break;
 		}
 	}
 
 	// if we're still in a scope at the end of the file, then we're missing a closing parenthesis
-	if (inServer || inLocation)
+	std::cerr << "ERROR on line " << lineCount << ": Missing closing parenthesis" << std::endl;
+	throw Webserv::NoException();
+}
+
+void	Config::parseKeyword( std::string const &keyword, std::vector<std::string> const &values, int const &lineCount )
+{
+	if (keyword == "root")
 	{
-		std::cerr << "ERROR on line " << lineCount << ": Missing closing parenthesis" << std::endl;
-		return ;
+		if (_root != "")
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Root variable already defined" << std::endl;
+			throw Webserv::NoException();
+		}
+		if (values.size() != 1)
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Too many values for root variable" << std::endl;
+			throw Webserv::NoException();
+		}
+		setRoot(values[0]);
+	}
+	else if (keyword == "host")
+	{
+		if (_host != "")
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Host variable already defined" << std::endl;
+			throw Webserv::NoException();
+		}
+		if (values.size() != 1)
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Too many values for host variable" << std::endl;
+			throw Webserv::NoException();
+		}
+		setHost(values[0]);
+	}
+	else if (keyword == "index")
+	{
+		if (_index != "")
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Index variable already defined" << std::endl;
+			throw Webserv::NoException();
+		}
+		if (values.size() != 1)
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Too many values for index variable" << std::endl;
+			throw Webserv::NoException();
+		}
+		if (values[0] != "index.html")
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Index should be index.html" << std::endl;
+			throw Webserv::NoException();
+		}
+		setIndex(values[0]);
+	}
+	else if (keyword == "listen")
+	{
+		if (values.size() != 1)
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Too many values for listen variable, use multiple lines when defining multiple ports" << std::endl;
+			throw Webserv::NoException();
+		}
+		if (values[0].find_first_not_of("0123456789") != std::string::npos || values[0].size() < 4)
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Invalid port number" << std::endl;
+			throw Webserv::NoException();
+		}
+		if (std::count(_listen.begin(), _listen.end(), values[0]))
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Duplicate ports forbidden" << std::endl;
+			throw Webserv::NoException();
+		}
+		pushListen(values[0]);
+	}
+	else if (keyword == "location")
+	{
+		std::cout << "location keyword found" << std::endl;
+	}
+	else if (keyword == "server_name")
+	{
+		if (!_server_name.empty())
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Server name variable already defined, use one line when defining multiple server names" << std::endl;
+			throw Webserv::NoException();
+		}
+		for (size_t i = 0; i < values.size(); i++)
+		{
+			if (std::count(_server_name.begin(), _server_name.end(), values[i]))
+			{
+				std::cerr << "ERROR on line " << lineCount << ": Duplicate server names forbidden" << std::endl;
+				throw Webserv::NoException();
+			}
+			pushServerName(values[i]);
+		}
+	}
+	else if (keyword == "error_page")
+	{
+		if (values.size() != 2)
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Values must be one error number and one error page, use multiple lines when defining multiple error pages" << std::endl;
+			throw Webserv::NoException();
+		}
+		if (values[0].find_first_not_of("0123456789") != std::string::npos || values[0].size() != 3)
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Invalid error number" << std::endl;
+			throw Webserv::NoException();
+		}
+		short errorNum = std::atoi(values[0].c_str());
+		if (_error_pages.find(errorNum) != _error_pages.end())
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Duplicate error numbers forbidden" << std::endl;
+			throw Webserv::NoException();
+		}
+		insertErrorPage(errorNum, values[1]);
+	}
+	else if (keyword == "client_max_body_size")
+	{
+		if (_client_max_body_size != static_cast<unsigned long>(-1))
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Client max body size variable already defined" << std::endl;
+			throw Webserv::NoException();
+		}
+		if (values.size() != 1)
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Too many values for client max body size variable" << std::endl;
+			throw Webserv::NoException();
+		}
+		if (values[0].find_first_not_of("0123456789") != std::string::npos)
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Invalid client max body size" << std::endl;
+			throw Webserv::NoException();
+		}
+		char *end;
+		errno = 0;
+		unsigned long maxClientBody = std::strtoul(values[0].c_str(), &end, 10);
+		if (errno == ERANGE || *end != '\0' || maxClientBody == ULONG_MAX)
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Invalid client max body size" << std::endl;
+			throw Webserv::NoException();
+		}
+		setMaxClientBody(maxClientBody);
+	}
+	else
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Unknown variable name" << std::endl;
+		throw Webserv::NoException();
 	}
 }
