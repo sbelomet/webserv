@@ -6,13 +6,13 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 14:09:46 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/22 13:41:56 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/08/26 11:43:05 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Location.hpp"
 
-Location::Location( void ) : _root(""), _index(""), _alias(""), _autoindex(false), _client_max_body_size(0)
+Location::Location( void ) : _root(""), _index(""), _alias(""), _autoindex(false), _autoindex_set(false), _client_max_body_size(0)
 {}
 
 Location::~Location( void )
@@ -30,7 +30,7 @@ Location const    &Location::operator=( Location const &copy )
 		setRoot(copy.getRoot());
 		setIndex(copy.getIndex());
 		setAlias(copy.getAlias());
-		setCgiExt(copy.getCgiExt());
+		setCgiPass(copy.getCgiPass());
 		setReturn(copy.getReturn());
 		setLocation(copy.getLocation());
 		setAutoindex(copy.getAutoindex());
@@ -45,6 +45,11 @@ Location const    &Location::operator=( Location const &copy )
 bool const	&Location::getAutoindex( void ) const
 {
 	return (_autoindex);
+}
+
+bool const	&Location::getAutoindexSet( void ) const
+{
+	return (_autoindex_set);
 }
 
 s_return const	&Location::getReturn( void ) const
@@ -82,9 +87,9 @@ unsigned long const	&Location::getMaxClientBody( void ) const
 	return (_client_max_body_size);
 }
 
-std::vector<std::string> const	&Location::getCgiExt( void ) const
+std::vector<std::string> const	&Location::getCgiPass( void ) const
 {
-	return (_cgi_ext);
+	return (_cgi_pass);
 }
 
 /*  */
@@ -102,6 +107,11 @@ void	Location::setIndex( std::string const &index )
 void	Location::setAutoindex( bool const &autoindex )
 {
 	_autoindex = autoindex;
+}
+
+void	Location::setAutoindexSet( bool const &autoindexSet )
+{
+	_autoindex_set = autoindexSet;
 }
 
 void	Location::setAlias( std::string const &alias )
@@ -127,9 +137,9 @@ void	Location::setAllowedMethods( s_methods const &allowedMethods )
 	_allowed_methods.remove = allowedMethods.remove;
 }
 
-void	Location::setCgiExt( std::vector<std::string> const &cgiExt )
+void	Location::setCgiPass( std::vector<std::string> const &cgiPass )
 {
-	_cgi_ext = cgiExt;
+	_cgi_pass = cgiPass;
 }
 
 void	Location::setMaxClientBody( unsigned long const &maxClientBody )
@@ -154,9 +164,9 @@ void	Location::switchRemove( void )
 	_allowed_methods.remove = !_allowed_methods.remove;
 }
 
-void	Location::pushCgiExt( std::string const &cgiExt )
+void	Location::pushCgiPass( std::string const &cgiPass )
 {
-	_cgi_ext.push_back(cgiExt);
+	_cgi_pass.push_back(cgiPass);
 }
 
 void	Location::setPathFromReturn( std::string const &path )

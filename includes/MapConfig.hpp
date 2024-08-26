@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 09:44:19 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/22 12:59:38 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/08/26 12:54:08 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,9 @@ class MapConfig
 		Config	*getConfigFromMap(std::string const &key);
 		void	mappingConfigs(std::string const &filepath);
 		void	insertConfig(std::string const &key, Config *config);
+		void	checkValidConfig( Config *config );
 };
+
+std::ostream &operator<<(std::ostream &out, MapConfig &obj);
 
 #endif

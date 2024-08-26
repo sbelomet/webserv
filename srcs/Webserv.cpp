@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 10:45:42 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/22 10:56:06 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/08/22 13:49:36 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@ Webserv const	&Webserv::operator=( Webserv const &copy )
 	{}
 	return (*this);
 }
+
+/*  */
 
 char const	*Webserv::FileException::what() const throw()
 {
@@ -53,4 +55,9 @@ char const	*Webserv::InetPtonException::what() const throw()
 char const	*Webserv::NoException::what() const throw()
 {
 	return ("");
+}
+
+char const	*Webserv::EpollException::what() const throw()
+{
+	return ("Error: failed to create epoll instance");
 }

@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 10:28:01 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/22 13:51:23 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/08/26 14:35:00 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,7 +135,6 @@ void	MapConfig::mappingConfigs( std::string const &filepath )
 			}
 			else
 			{
-				std::cout << "server keyword found" << std::endl;
 				Config	*config = new Config();
 				while (it != line.end() && isWhitespace(*it))		// skip whitespaces
 					it++;
@@ -152,6 +151,7 @@ void	MapConfig::mappingConfigs( std::string const &filepath )
 					std::cerr << "ERROR on line " << lineCount << ": Missing or obstructed opening parenthesis after scope keyword" << std::endl;
 					throw Webserv::NoException();
 				}
+				checkValidConfig(config);
 				serverCount++;
 				std::string key = "server";
 				std::ostringstream oss;
@@ -165,38 +165,78 @@ void	MapConfig::mappingConfigs( std::string const &filepath )
 		}
 	}
 	infile.close();
+}
 
-	std::cout << "config root out of loop: " << getConfigFromMap("server1")->getRoot() << std::endl;
-	std::cout << "config host out of loop: " << getConfigFromMap("server1")->getHost() << std::endl;
-	std::cout << "config index out of loop: " << getConfigFromMap("server1")->getIndex() << std::endl;
-	std::cout << "config max client body size out of loop: " << getConfigFromMap("server1")->getMaxClientBody() << std::endl;
-	std::vector<std::string> server_names = getConfigFromMap("server1")->getServerName();
-	for (std::vector<std::string>::iterator it = server_names.begin(); it != server_names.end(); it++)
-		std::cout << "server_name: " << *it << std::endl;
-	std::map<short, std::string> error_pages = getConfigFromMap("server1")->getErrorPages();
-	for (std::map<short, std::string>::iterator it = error_pages.begin(); it != error_pages.end(); it++)
-		std::cout << "error_pages: " << it->first << " " << it->second << std::endl;
-	std::vector<std::string> listen = getConfigFromMap("server1")->getListen();
-	for (std::vector<std::string>::iterator it = listen.begin(); it != listen.end(); it++)
-		std::cout << "listen: " << *it << std::endl;
-	std::vector<Location *> locations = getConfigFromMap("server1")->getLocations();
-	for (std::vector<Location *>::iterator it = locations.begin(); it != locations.end(); it++)
+void	MapConfig::checkValidConfig( Config *config )
+{
+	if (config->getRoot().empty())
 	{
-//		std::cout << "location root: " << (*it)->getRoot() << std::endl;
-//		std::cout << "location index: " << (*it)->getIndex() << std::endl;
-//		std::cout << "location alias: " << (*it)->getAlias() << std::endl;
-		std::cout << "location location: " << (*it)->getLocation() << std::endl;
-/* 		std::cout << "location autoindex: " << (*it)->getAutoindex() << std::endl;
-		std::cout << "location max client body size: " << (*it)->getMaxClientBody() << std::endl;
-		std::vector<std::string> cgi_ext = (*it)->getCgiExt();
-		for (std::vector<std::string>::iterator it = cgi_ext.begin(); it != cgi_ext.end(); it++)
-			std::cout << "location cgi_ext: " << *it << std::endl;
-		s_return ret = (*it)->getReturn();
-		std::cout << "location return path: " << ret.path << std::endl;
-		std::cout << "location return status: " << ret.status << std::endl;
-		s_methods methods = (*it)->getAllowedMethods();
-		std::cout << "location allowed methods get: " << methods.get << std::endl;
-		std::cout << "location allowed methods post: " << methods.post << std::endl;
-		std::cout << "location allowed methods remove: " << methods.remove << std::endl; */
+		std::cerr << "ERROR: root value is missing" << std::endl;
+		throw Webserv::NoException();
 	}
+	if (config->getHost().empty())
+	{
+		std::cerr << "ERROR: host value is missing" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (config->getIndex().empty())
+	{
+		std::cerr << "ERROR: index value is missing" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (config->getListen().empty())
+	{
+		std::cerr << "ERROR: listen value is missing" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (config->getLocations().empty())
+	{
+		std::cerr << "ERROR: location value is missing" << std::endl;
+		throw Webserv::NoException();
+	}
+}
+
+std::ostream &operator<<(std::ostream &out, MapConfig &obj)
+{
+	for (std::map<std::string, Config *>::iterator it = obj.getMapConfig().begin(); it != obj.getMapConfig().end(); it++)
+	{
+		out << MAGENTA << it->first << "\n{" << RESET << std::endl;
+		out << RED << "  root: " << RESET << obj.getConfigFromMap(it->first)->getRoot() << std::endl;
+		out << RED << "  host: " << RESET << obj.getConfigFromMap(it->first)->getHost() << std::endl;
+		out << RED << "  index: " << RESET << obj.getConfigFromMap(it->first)->getIndex() << std::endl;
+		out << RED << "  max client body size: " << RESET << obj.getConfigFromMap(it->first)->getMaxClientBody() << std::endl;
+		std::vector<std::string> server_names = obj.getConfigFromMap(it->first)->getServerName();
+		for (std::vector<std::string>::iterator it = server_names.begin(); it != server_names.end(); it++)
+			out << RED << "  server_name: " << RESET << *it << std::endl;
+		std::map<short, std::string> error_pages = obj.getConfigFromMap(it->first)->getErrorPages();
+		for (std::map<short, std::string>::iterator it = error_pages.begin(); it != error_pages.end(); it++)
+			out << RED << "  error_pages: " << RESET << it->first << " " << it->second << std::endl;
+		std::vector<std::string> listen = obj.getConfigFromMap(it->first)->getListen();
+		for (std::vector<std::string>::iterator it = listen.begin(); it != listen.end(); it++)
+			out << RED << "  listen: " << RESET << *it << std::endl;
+		std::vector<Location *> locations = obj.getConfigFromMap(it->first)->getLocations();
+		for (std::vector<Location *>::iterator it = locations.begin(); it != locations.end(); it++)
+		{
+			out << YELLOW << "  location: " << RESET << (*it)->getLocation() << std::endl;
+			out << YELLOW << "  {" << RESET << std::endl;
+			out << CYAN << "    root: " << RESET << (*it)->getRoot() << std::endl;
+			out << CYAN << "    index: " << RESET << (*it)->getIndex() << std::endl;
+			out << CYAN << "    alias: " << RESET << (*it)->getAlias() << std::endl;
+			out << CYAN << "    autoindex: " << RESET << (*it)->getAutoindex() << std::endl;
+			out << CYAN << "    max client body size: " << RESET << (*it)->getMaxClientBody() << std::endl;
+			std::vector<std::string> cgi_ext = (*it)->getCgiPass();
+			for (std::vector<std::string>::iterator it = cgi_ext.begin(); it != cgi_ext.end(); it++)
+				out << CYAN << "    cgi_pass: " << RESET << *it << std::endl;
+			s_return ret = (*it)->getReturn();
+			out << CYAN << "    return path: " << RESET << ret.path << std::endl;
+			out << CYAN << "    return status: " << RESET << ret.status << std::endl;
+			s_methods methods = (*it)->getAllowedMethods();
+			out << CYAN << "    allowed methods get: " << RESET << methods.get << std::endl;
+			out << CYAN << "    allowed methods post: " << RESET << methods.post << std::endl;
+			out << CYAN << "    allowed methods remove: " << RESET << methods.remove << std::endl;
+			out << YELLOW << "  }" << RESET << std::endl;
+		}
+		out << MAGENTA << "}" << RESET << std::endl;
+	}
+	return (out);
 }

@@ -6,13 +6,13 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:09 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/22 13:57:56 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/08/26 14:08:26 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
 
-Config::Config( void ) : _root(""), _host(""), _index(""), _client_max_body_size(-1)
+Config::Config( void ) : _root(""), _host(""), _index(""), _client_max_body_size(0)
 {}
 
 Config::~Config( void )
@@ -168,9 +168,7 @@ void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitPar
 
 		for (std::string::iterator it = line.begin(); it != line.end(); it++) // read each line character by character
 		{
-			std::string::iterator kw_end;
 			std::string keyword;
-			std::string indent = "  ";
 
 			// ignore comments
 			if (*it == '#')
@@ -180,6 +178,7 @@ void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitPar
 			if (isWhitespace(*it))
 				continue;
 
+			// if semicolon not directly after variable and their values, throw error
 			if (*it == ';')
 			{
 				std::cerr << "ERROR on line " << lineCount << ": Unexpected semicolon" << std::endl;
@@ -201,32 +200,28 @@ void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitPar
 					throw Webserv::NoException();
 				}
 			}
+			else if (*it == '{')
+			{
+				std::cerr << "ERROR on line " << lineCount << ": Unexpected opening parenthesis" << std::endl;
+				throw Webserv::NoException();
+			}
+
+			if (afterVar)
+			{
+				std::cerr << "ERROR on line " << lineCount << ": Variable declaration must be on one line and end with a semicolon" << std::endl;
+				throw Webserv::NoException();
+			}
 
 			// if not on seperator, then we're on a keyword
 			if (!isSeparator(*it))
 			{
-				kw_end = findKeywordEnd(it, line.end());
+				std::string::iterator kw_end = findKeywordEnd(it, line.end());
 				keyword = line.substr(it - line.begin(), (kw_end - line.begin()) - (it - line.begin()));
-
-				std::string color = CYAN;
-				if (inLocation)
-				{
-					indent = "    ";
-					if (afterSepNW)
-					{
-						color = MAGENTA;
-						afterSepNW = false;
-						afterVar = true;
-					}
-				}
 				if (afterSepNW)
 				{
-					color = RED;
 					afterSepNW = false;
 					afterVar = true;
 				}
-				std::cout << color << indent << keyword << RESET << std::endl;
-
 				it = kw_end;
 			}
 
@@ -252,7 +247,6 @@ void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitPar
 				}
 				std::string::iterator loc_end = findKeywordEnd(it, line.end());
 				std::string location = line.substr(it - line.begin(), (loc_end - line.begin()) - (it - line.begin()));
-				std::cout << GREEN << indent << location << RESET << std::endl;
 				it = loc_end;
 
 				inLocation->setLocation(location);
@@ -283,54 +277,7 @@ void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitPar
 			// if we're after a variable, get all values until semicolon
 			if (afterVar)
 			{
-				int nbvals = 0;
-				std::vector<std::string> values;
-				while (it != line.end() && *it && *it != ';')
-				{
-					while (it != line.end() && *it && isWhitespace(*it))
-					{
-						it++;
-					}
-					if (it == line.end())
-						break;
-					if (*it == ';')
-					{
-						if (nbvals == 0) // if no value is assigned, throw error
-						{
-							std::cerr << "ERROR on line " << lineCount << ": Assigning no value is forbidden" << std::endl;
-							throw Webserv::NoException();
-						}
-						else
-						{
-							afterSepNW = true;
-							afterVar = false;
-							parseKeyword(keyword, values, lineCount);
-							break;
-						}
-					}
-					std::string::iterator val_end = findKeywordEnd(it, line.end());
-					std::string value = line.substr(it - line.begin(), (val_end - line.begin()) - (it - line.begin()));
-					std::cout << YELLOW << indent << value << RESET << std::endl;
-					it = val_end;
-					nbvals++;
-					values.push_back(value);
-					if (*it == ';')
-					{
-						afterSepNW = true;
-						afterVar = false;
-						parseKeyword(keyword, values, lineCount);
-					}
-				}
-				if (it == line.end())
-				{
-					std::cerr << "ERROR on line " << lineCount << ": Definition of variable not on one line" << std::endl;
-					throw Webserv::NoException();
-				}
-				if (!nbvals && *it == ';')
-				{
-					std::cerr << "ERROR on line " << lineCount << ": Assigning no value is forbidden" << std::endl;
-					throw Webserv::NoException();
-				}
+				lexingAfterVar(line, lineCount, keyword, it, inLocation, afterSepNW, afterVar);
 			}
 
 			// if we encounter a closing parenthesis...
@@ -347,7 +294,7 @@ void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitPar
 			}
 
 			// the for loop doesn't break if we're exactly at the end of the line, so we break manually
-			if (it == line.end())
+			if (it == line.end() || *it == '#')
 				break;
 		}
 	}
@@ -357,145 +304,410 @@ void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitPar
 	throw Webserv::NoException();
 }
 
-void	Config::parseKeyword( std::string const &keyword, std::vector<std::string> const &values, int const &lineCount )
+void	Config::lexingAfterVar( std::string const &line, int const &lineCount, std::string const &keyword,
+								std::string::iterator &it, Location *location, bool &afterSepNW, bool &afterVar )
+{
+	int nbvals = 0;
+	std::vector<std::string> values;
+	while (it != line.end() && *it && *it != ';')
+	{
+		if ((*it) == '#')
+			break;
+		
+		while (it != line.end() && *it && isWhitespace(*it))
+		{
+			it++;
+		}
+		if (it == line.end())
+			break;
+		if (*it == ';')
+		{
+			if (nbvals == 0) // if no value is assigned, throw error
+			{
+				std::cerr << "ERROR on line " << lineCount << ": Assigning no value is forbidden" << std::endl;
+				throw Webserv::NoException();
+			}
+			else
+			{
+				afterSepNW = true;
+				afterVar = false;
+				parseKeyword(keyword, values, lineCount, location);
+				break;
+			}
+		}
+		if (isSeparator(*it))
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Unexpected separator" << std::endl;
+			throw Webserv::NoException();
+		}
+		std::string::iterator val_end = findKeywordEnd(it, line.end());
+		std::string value = line.substr(it - line.begin(), (val_end - line.begin()) - (it - line.begin()));
+		it = val_end;
+		nbvals++;
+		values.push_back(value);
+		if (*it == ';')
+		{
+			afterSepNW = true;
+			afterVar = false;
+			parseKeyword(keyword, values, lineCount, location);
+		}
+	}
+	if (it == line.end())
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Definition of variable not on one line" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (!nbvals && *it == ';')
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Assigning no value is forbidden" << std::endl;
+		throw Webserv::NoException();
+	}
+}
+
+/* Parsing methods */
+
+void	Config::parseKeyword( std::string const &keyword, std::vector<std::string> const &values, int const &lineCount, Location *location )
 {
 	if (keyword == "root")
 	{
-		if (_root != "")
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Root variable already defined" << std::endl;
-			throw Webserv::NoException();
-		}
-		if (values.size() != 1)
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Too many values for root variable" << std::endl;
-			throw Webserv::NoException();
-		}
-		setRoot(values[0]);
+		parseKeywordRoot(values, lineCount, location);
 	}
 	else if (keyword == "host")
 	{
-		if (_host != "")
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Host variable already defined" << std::endl;
-			throw Webserv::NoException();
-		}
-		if (values.size() != 1)
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Too many values for host variable" << std::endl;
-			throw Webserv::NoException();
-		}
-		setHost(values[0]);
+		parseKeywordHost(values, lineCount, location);
 	}
 	else if (keyword == "index")
 	{
-		if (_index != "")
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Index variable already defined" << std::endl;
-			throw Webserv::NoException();
-		}
-		if (values.size() != 1)
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Too many values for index variable" << std::endl;
-			throw Webserv::NoException();
-		}
-		if (values[0] != "index.html")
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Index should be index.html" << std::endl;
-			throw Webserv::NoException();
-		}
-		setIndex(values[0]);
+		parseKeywordIndex(values, lineCount, location);
 	}
 	else if (keyword == "listen")
 	{
-		if (values.size() != 1)
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Too many values for listen variable, use multiple lines when defining multiple ports" << std::endl;
-			throw Webserv::NoException();
-		}
-		if (values[0].find_first_not_of("0123456789") != std::string::npos || values[0].size() < 4)
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Invalid port number" << std::endl;
-			throw Webserv::NoException();
-		}
-		if (std::count(_listen.begin(), _listen.end(), values[0]))
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Duplicate ports forbidden" << std::endl;
-			throw Webserv::NoException();
-		}
-		pushListen(values[0]);
-	}
-	else if (keyword == "location")
-	{
-		std::cout << "location keyword found" << std::endl;
+		parseKeywordListen(values, lineCount, location);
 	}
 	else if (keyword == "server_name")
 	{
-		if (!_server_name.empty())
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Server name variable already defined, use one line when defining multiple server names" << std::endl;
-			throw Webserv::NoException();
-		}
-		for (size_t i = 0; i < values.size(); i++)
-		{
-			if (std::count(_server_name.begin(), _server_name.end(), values[i]))
-			{
-				std::cerr << "ERROR on line " << lineCount << ": Duplicate server names forbidden" << std::endl;
-				throw Webserv::NoException();
-			}
-			pushServerName(values[i]);
-		}
+		parseKeywordServerName(values, lineCount, location);
 	}
 	else if (keyword == "error_page")
 	{
-		if (values.size() != 2)
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Values must be one error number and one error page, use multiple lines when defining multiple error pages" << std::endl;
-			throw Webserv::NoException();
-		}
-		if (values[0].find_first_not_of("0123456789") != std::string::npos || values[0].size() != 3)
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Invalid error number" << std::endl;
-			throw Webserv::NoException();
-		}
-		short errorNum = std::atoi(values[0].c_str());
-		if (_error_pages.find(errorNum) != _error_pages.end())
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Duplicate error numbers forbidden" << std::endl;
-			throw Webserv::NoException();
-		}
-		insertErrorPage(errorNum, values[1]);
+		parseKeywordErrorPage(values, lineCount, location);
 	}
 	else if (keyword == "client_max_body_size")
 	{
-		if (_client_max_body_size != static_cast<unsigned long>(-1))
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Client max body size variable already defined" << std::endl;
-			throw Webserv::NoException();
-		}
-		if (values.size() != 1)
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Too many values for client max body size variable" << std::endl;
-			throw Webserv::NoException();
-		}
-		if (values[0].find_first_not_of("0123456789") != std::string::npos)
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Invalid client max body size" << std::endl;
-			throw Webserv::NoException();
-		}
-		char *end;
-		errno = 0;
-		unsigned long maxClientBody = std::strtoul(values[0].c_str(), &end, 10);
-		if (errno == ERANGE || *end != '\0' || maxClientBody == ULONG_MAX)
-		{
-			std::cerr << "ERROR on line " << lineCount << ": Invalid client max body size" << std::endl;
-			throw Webserv::NoException();
-		}
-		setMaxClientBody(maxClientBody);
+		parseKeywordClientMaxBodySize(values, lineCount, location);
+	}
+	else if (keyword == "alias")
+	{
+		parseKeywordAlias(values, lineCount, location);
+	}
+	else if (keyword == "return")
+	{
+		parseKeywordReturn(values, lineCount, location);
+	}
+	else if (keyword == "autoindex")
+	{
+		parseKeywordAutoindex(values, lineCount, location);
+	}
+	else if (keyword == "allow_methods")
+	{
+		parseKeywordAllowedMethods(values, lineCount, location);
+	}
+	else if (keyword == "cgi_pass")
+	{
+		parseKeywordCgiPass(values, lineCount, location);
 	}
 	else
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Unknown variable name" << std::endl;
 		throw Webserv::NoException();
+	}
+}
+
+void	Config::parseKeywordRoot( std::vector<std::string> const &values, int const &lineCount, Location *location )
+{
+	if ((_root != "" && !location) || (location && location->getRoot() != ""))
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Root variable already defined in scope" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (values.size() != 1)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Too many values for root variable" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (location)
+		location->setRoot(values[0]);
+	else
+		setRoot(values[0]);
+}
+
+void	Config::parseKeywordHost( std::vector<std::string> const &values, int const &lineCount, Location *location )
+{
+	if (location)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Host variable not allowed in location scope" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (_host != "")
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Host variable already defined" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (values.size() != 1)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Too many values for host variable" << std::endl;
+		throw Webserv::NoException();
+	}
+	setHost(values[0]);
+}
+
+void	Config::parseKeywordIndex( std::vector<std::string> const &values, int const &lineCount, Location *location )
+{
+	if ((_index != "" && !location) || (location && location->getIndex() != ""))
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Index variable already defined in scope" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (values.size() != 1)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Too many values for index variable" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (values[0] != "index.html" && !location)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Index should be index.html in server scope" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (location)
+		location->setIndex(values[0]);
+	else
+		setIndex(values[0]);
+}
+
+void	Config::parseKeywordListen( std::vector<std::string> const &values, int const &lineCount, Location *location )
+{
+	if (location)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Listen variable not allowed in location scope" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (values.size() != 1)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Too many values for listen variable, use multiple lines when defining multiple ports" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (values[0].find_first_not_of("0123456789") != std::string::npos || values[0].size() < 4)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Invalid port number" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (std::count(_listen.begin(), _listen.end(), values[0]))
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Duplicate ports forbidden" << std::endl;
+		throw Webserv::NoException();
+	}
+	pushListen(values[0]);
+}
+
+void	Config::parseKeywordServerName( std::vector<std::string> const &values, int const &lineCount, Location *location )
+{
+	if (location)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Server name variable not allowed in location scope" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (!_server_name.empty())
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Server name variable already defined, use one line when defining multiple server names" << std::endl;
+		throw Webserv::NoException();
+	}
+	for (size_t i = 0; i < values.size(); i++)
+	{
+		if (std::count(_server_name.begin(), _server_name.end(), values[i]))
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Duplicate server names forbidden" << std::endl;
+			throw Webserv::NoException();
+		}
+		pushServerName(values[i]);
+	}
+}
+
+void	Config::parseKeywordErrorPage( std::vector<std::string> const &values, int const &lineCount, Location *location )
+{
+	if (location)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Error page variable not allowed in location scope" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (values.size() != 2)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Values must be one error number and one error page, use multiple lines when defining multiple error pages" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (values[0].find_first_not_of("0123456789") != std::string::npos || values[0].size() != 3)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Invalid error number" << std::endl;
+		throw Webserv::NoException();
+	}
+	short errorNum = std::atoi(values[0].c_str());
+	if (_error_pages.find(errorNum) != _error_pages.end())
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Duplicate error numbers forbidden" << std::endl;
+		throw Webserv::NoException();
+	}
+	insertErrorPage(errorNum, values[1]);
+}
+
+void	Config::parseKeywordClientMaxBodySize( std::vector<std::string> const &values, int const &lineCount, Location *location )
+{
+	if ((_client_max_body_size != 0 && !location) || (location && location->getMaxClientBody() != 0))
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Client max body size variable already defined in scope" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (values.size() != 1)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Too many values for client max body size variable" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (values[0].find_first_not_of("0123456789") != std::string::npos)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Invalid client max body size" << std::endl;
+		throw Webserv::NoException();
+	}
+	char *end;
+	errno = 0;
+	unsigned long maxClientBody = std::strtoul(values[0].c_str(), &end, 10);
+	if (errno == ERANGE || *end != '\0' || maxClientBody == ULONG_MAX)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Invalid client max body size" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (location)
+		location->setMaxClientBody(maxClientBody);
+	else
+		setMaxClientBody(maxClientBody);
+}
+
+void	Config::parseKeywordAlias( std::vector<std::string> const &values, int const &lineCount, Location *location )
+{
+	if (!location)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Alias variable not allowed outside location scope" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (location->getAlias() != "")
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Alias variable already defined" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (values.size() != 1)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Too many values for alias variable" << std::endl;
+		throw Webserv::NoException();
+	}
+	location->setAlias(values[0]);
+}
+
+void	Config::parseKeywordReturn( std::vector<std::string> const &values, int const &lineCount, Location *location )
+{
+	if (!location)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Return variable not allowed outside location scope" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (location->getReturn().path != "")
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Return variable already defined" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (values.size() != 1)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Too many values for return variable" << std::endl;
+		throw Webserv::NoException();
+	}
+	location->setPathFromReturn(values[0]);
+}
+
+void	Config::parseKeywordAutoindex( std::vector<std::string> const &values, int const &lineCount, Location *location )
+{
+	if (!location)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Autoindex variable not allowed outside location scope" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (location->getAutoindexSet())
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Autoindex variable already defined" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (values.size() != 1)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Too many values for autoindex variable" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (values[0] != "on" && values[0] != "off")
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Invalid value for autoindex variable" << std::endl;
+		throw Webserv::NoException();
+	}
+	location->setAutoindexSet(true);
+	if (values[0] == "on")
+		location->setAutoindex(true);
+}
+
+void	Config::parseKeywordAllowedMethods( std::vector<std::string> const &values, int const &lineCount, Location *location )
+{
+	if (!location)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Allowed methods variable not allowed outside location scope" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (location->getAllowedMethods().var_set)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Allowed methods variable already defined" << std::endl;
+		throw Webserv::NoException();
+	}
+	for (size_t i = 0; i < values.size(); i++)
+	{
+		if (values[i] != "GET" && values[i] != "POST" && values[i] != "DELETE")
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Invalid value for allowed methods variable" << std::endl;
+			throw Webserv::NoException();
+		}
+		if (std::count(values.begin(), values.end(), values[i]) > 1)
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Duplicate allowed methods forbidden" << std::endl;
+			throw Webserv::NoException();
+		}
+		if (values[i] == "GET")
+			location->switchGet();
+		if (values[i] == "POST")
+			location->switchPost();
+		if (values[i] == "DELETE")
+			location->switchRemove();
+	}
+}
+
+void	Config::parseKeywordCgiPass( std::vector<std::string> const &values, int const &lineCount, Location *location )
+{
+	if (!location)
+	{
+		std::cerr << "ERROR on line " << lineCount << ": CGI pass variable not allowed outside location scope" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (!location->getCgiPass().empty())
+	{
+		std::cerr << "ERROR on line " << lineCount << ": CGI pass variable already defined" << std::endl;
+		throw Webserv::NoException();
+	}
+	for (size_t i = 0; i < values.size(); i++)
+	{
+		if (std::count(location->getCgiPass().begin(), location->getCgiPass().end(), values[i]))
+		{
+			std::cerr << "ERROR on line " << lineCount << ": Duplicate CGI pass values forbidden" << std::endl;
+			throw Webserv::NoException();
+		}
+		location->pushCgiPass(values[i]);
 	}
 }

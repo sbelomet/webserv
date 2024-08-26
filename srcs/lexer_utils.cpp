@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   lexer_utils.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/21 10:32:48 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/08/22 10:30:51 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/08/26 13:54:07 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,13 @@ bool onlyWhitespaces(const std::string &str)
 }
 
 std::string::iterator findKeywordEnd(std::string::iterator it, std::string::iterator end)
+{
+	while (it != end && !isSeparator(*it))
+		it++;
+	return it;
+}
+
+std::string::iterator findKeywordEnd(std::string::iterator it, std::string::const_iterator end)
 {
 	while (it != end && !isSeparator(*it))
 		it++;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 11:36:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/22 11:09:40 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/08/22 14:46:56 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,7 @@ Server::Server( void )
 {}
 
 Server::~Server( void )
-{
-    // delete if malloced
-}
+{}
 
 Server::Server( Server const &copy )
 {
@@ -160,12 +158,12 @@ void	Server::listeningServers( void )
 	{
 		if (listen(sockets[i], SOMAXCONN) != 0)
 		{
-			std::cerr << "Error: failed to listen socket with port -> "
+			std::cerr << RED << "Error: failed to listen socket with port -> "
 				<< ntohs(getSockaddrFromServerAddr(i).sin_port) << RESET << std::endl;
 			close(sockets[i]);
 			throw (Webserv::NoException());
 		}
-		std::cout << "listen socket with port -> "
+		std::cout << GREEN << "listen socket with port-> "
 				<< ntohs(getSockaddrFromServerAddr(i).sin_port) << RESET << std::endl;
 			close(sockets[i]);
 	}

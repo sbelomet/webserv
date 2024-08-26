@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 11:35:54 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/22 10:54:20 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/08/22 13:10:32 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 # include <vector>
 # include <cstdlib>
 # include <unistd.h>
-# include <iostream>
 # include "Webserv.hpp"
 # include <arpa/inet.h>
 # include "MapConfig.hpp"

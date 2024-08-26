@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:11:54 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/08/22 11:05:15 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/08/26 15:02:30 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 int main(int ac, char **av)
 {
 	if (ac != 2)
-        std::cout << "Need a config file" << std::endl;
+		std::cout << "Need a config file" << std::endl;
 	else
 	{
 		Server		server;
@@ -38,6 +38,8 @@ int main(int ac, char **av)
 			std::cerr << RED << e.what() << RESET << std::endl;
 			exit(1);
 		}
+
+		std::cout << configs << std::endl;
 	}
 	return (0);
 }

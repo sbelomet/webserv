@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Webserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:12:17 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/08/22 10:55:28 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/08/26 13:54:28 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,45 +29,52 @@ bool isSeparatorNW(char c);
 bool isSeparator(char c);
 bool onlyWhitespaces(const std::string &str);
 std::string::iterator findKeywordEnd(std::string::iterator it, std::string::iterator end);
+std::string::iterator findKeywordEnd(std::string::iterator it, std::string::const_iterator end);
 
 class Webserv
 {
-    private:
-        Webserv();
+	private:
+		Webserv();
+		Webserv(Webserv const &copy);
+		Webserv const &operator=(Webserv const &copy);
+	public:
 		~Webserv();
-		Webserv( Webserv const &copy );
 
-		Webserv const &operator=( Webserv const &copy );
-    public:
-        class FileException : public std::exception
+		class FileException : public std::exception
 		{
 			public:
 				virtual const char *what() const throw();
 		};
-        
-        class SocketException : public std::exception
-        {
-            public:
-                virtual const char *what() const throw();
-        };
 
-        class SocketOptException : public std::exception
-        {
-            public:
-                virtual const char *what() const throw();
-        };
+		class SocketException : public std::exception
+		{
+			public:
+				virtual const char *what() const throw();
+		};
 
-        class InetPtonException : public std::exception
-        {
-            public:
-                virtual const char *what() const throw();
-        };
+		class SocketOptException : public std::exception
+		{
+			public:
+				virtual const char *what() const throw();
+		};
 
-        class NoException : public std::exception
-        {
-            public:
-                virtual const char *what() const throw();
-        };
+		class InetPtonException : public std::exception
+		{
+			public:
+				virtual const char *what() const throw();
+		};
+
+		class NoException : public std::exception
+		{
+			public:
+				virtual const char *what() const throw();
+		};
+
+		class EpollException : public std::exception
+		{
+			public:
+				virtual const char *what() const throw();
+		};
 };
 
 #endif

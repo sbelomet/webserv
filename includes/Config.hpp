@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:14 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/22 13:17:27 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/08/26 14:07:42 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,10 +73,27 @@ class Config
 		void	pushServerName( std::string const &serverName );
 		void	insertErrorPage( short const &num, std::string const &file );
 
-		/* methods */
+		/* lexing methods */
 
 		void makeConfig( std::ifstream &infile, int &lineCount, bool awaitParenth );
-		void parseKeyword( std::string const &keyword, std::vector<std::string> const &values, int const &lineCount );
+		void lexingAfterVar(	std::string const &line, int const &lineCount, std::string const &keyword,
+								std::string::iterator &it, Location *location, bool &afterSepNW, bool &afterVar );
+
+		/* parsing methods */
+
+		void parseKeyword( std::string const &keyword, std::vector<std::string> const &values, int const &lineCount, Location *location );
+		void parseKeywordRoot( std::vector<std::string> const &values, int const &lineCount, Location *location );
+		void parseKeywordHost( std::vector<std::string> const &values, int const &lineCount, Location *location );
+		void parseKeywordIndex( std::vector<std::string> const &values, int const &lineCount, Location *location );
+		void parseKeywordAlias( std::vector<std::string> const &values, int const &lineCount, Location *location );
+		void parseKeywordListen( std::vector<std::string> const &values, int const &lineCount, Location *location );
+		void parseKeywordReturn( std::vector<std::string> const &values, int const &lineCount, Location *location );
+		void parseKeywordCgiPass( std::vector<std::string> const &values, int const &lineCount, Location *location );
+		void parseKeywordErrorPage( std::vector<std::string> const &values, int const &lineCount, Location *location );
+		void parseKeywordAutoindex( std::vector<std::string> const &values, int const &lineCount, Location *location );
+		void parseKeywordServerName( std::vector<std::string> const &values, int const &lineCount, Location *location );
+		void parseKeywordAllowedMethods( std::vector<std::string> const &values, int const &lineCount, Location *location );
+		void parseKeywordClientMaxBodySize( std::vector<std::string> const &values, int const &lineCount, Location *location );
 };
 
 #endif
