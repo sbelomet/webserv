@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:12:17 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/08/26 13:54:28 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/03 13:09:30 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 
 # include <iostream>
 
+# define MAX_EVENTS 4096
+# define BUFFER_SIZE 50000
 # define RED "\033[1;31m"
 # define GREEN "\033[1;32m"
 # define YELLOW "\033[1;33m"

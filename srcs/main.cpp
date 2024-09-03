@@ -3,18 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:11:54 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/08/26 15:02:30 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/08/28 15:37:35 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <algorithm>
 #include "Server.hpp"
 #include "Webserv.hpp"
+#include "Manager.hpp"
 #include "MapConfig.hpp"
-
 
 int main(int ac, char **av)
 {
@@ -23,11 +23,11 @@ int main(int ac, char **av)
 	else
 	{
 		Server		server;
-		MapConfig	configs;
+		Manager		manager;
 		try
 		{
-			configs.mappingConfigs(av[1]);
-		//	configs.makeAll(server);
+			manager.makeAll(server, av[1]);
+			//std::cout << manager.getMapConfig() << std::endl;
 		}
 		catch (Webserv::NoException const &e)
 		{
@@ -38,8 +38,6 @@ int main(int ac, char **av)
 			std::cerr << RED << e.what() << RESET << std::endl;
 			exit(1);
 		}
-
-		std::cout << configs << std::endl;
 	}
 	return (0);
 }

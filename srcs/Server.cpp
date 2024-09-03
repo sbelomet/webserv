@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 11:36:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/22 14:46:56 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/08/28 15:40:17 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ Server const	&Server::operator=( Server const &copy )
 {
 	if (this != &copy)
 	{
+		setEpollfd(copy.getEpollFd());
 		setSockets(copy.getSockets());
 		setServers(copy.getServers());
 		setServerAddr(copy.getServerAddr());
@@ -35,6 +36,16 @@ Server const	&Server::operator=( Server const &copy )
 }
 
 /* */
+
+int	const	&Server::getEpollFd( void ) const
+{
+	return (_epollFd);
+}
+
+void	Server::setEpollfd( int const &epollFd )
+{
+	_epollFd = epollFd;
+}
 
 std::vector<int> const &Server::getSockets(void) const
 {
@@ -56,6 +67,11 @@ void Server::setServers(std::map<int, Config *> const &servers)
 	_servers = servers;
 }
 
+std::map<int, int> const &Server::getNewConnections( void ) const
+{
+	return (_newConnections);
+}
+
 std::vector<sockaddr_in> const &Server::getServerAddr(void) const
 {
 	return (_serverAddr);
@@ -66,9 +82,21 @@ void Server::setServerAddr(std::vector<sockaddr_in> const &serverAddrs)
 	_serverAddr = serverAddrs;
 }
 
+void	Server::setNewConnections( std::map<int, int> const &newConnections )
+{
+	_newConnections = newConnections;
+}
+
+/*  */
+
 void	Server::pushSocket( int const &socket )
 {
 	_sockets.push_back(socket);
+}
+
+void	Server::insertServer( int const &index, Config *&config )
+{
+	_servers[index] = config;
 }
 
 void	Server::pushServerAddr( sockaddr_in const &socket_address )
@@ -76,9 +104,9 @@ void	Server::pushServerAddr( sockaddr_in const &socket_address )
 	_serverAddr.push_back(socket_address);
 }
 
-void	Server::insertServer( int const &index, Config *&config )
+void	Server::insertNewConnection( int const &newConnection, int const &index )
 {
-	_servers[index] = config;
+	_newConnections[newConnection] = index;
 }
 
 /*  */
@@ -96,6 +124,11 @@ int const	&Server::getSocketFromSockets( size_t const &index )
 sockaddr_in	&Server::getSockaddrFromServerAddr( size_t const &index )
 {
 	return(_serverAddr[index]);
+}
+
+int	const	&Server::getIndexSocketFromNewConnections( int const &index )
+{
+	return (_newConnections[index]);
 }
 
 /*  */
@@ -156,15 +189,29 @@ void	Server::listeningServers( void )
 	std::vector<int> const	sockets = getSockets();
 	for (size_t i = 0; i < sockets.size(); i++)
 	{
+		if (fcntl(sockets[i], F_SETFL, fcntl(sockets[i], F_GETFL, 0) | O_NONBLOCK) < 0)
+		{
+			perror("fcntl: listeningServers()");
+			throw (Webserv::NoException());
+		}
 		if (listen(sockets[i], SOMAXCONN) != 0)
 		{
 			std::cerr << RED << "Error: failed to listen socket with port -> "
 				<< ntohs(getSockaddrFromServerAddr(i).sin_port) << RESET << std::endl;
-			close(sockets[i]);
 			throw (Webserv::NoException());
 		}
 		std::cout << GREEN << "listen socket with port-> "
-				<< ntohs(getSockaddrFromServerAddr(i).sin_port) << RESET << std::endl;
-			close(sockets[i]);
+			<< ntohs(getSockaddrFromServerAddr(i).sin_port) << RESET << std::endl;
 	}
+}
+
+int	Server::newConnection( int const &eventFd )
+{
+	std::vector<int> const	sockets = getSockets();
+	for (size_t i = 0; i < sockets.size(); i++)
+	{
+		if (sockets[i] == eventFd)
+			return (static_cast<int>(i));
+	}
+	return (-1);
 }

@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 10:28:01 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/26 14:35:00 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/03 13:36:51 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,8 +65,9 @@ Config	*MapConfig::getConfigFromMap(std::string const &key)
 
 /*  */
 
-void	MapConfig::makeAll( Server &server )
+void	MapConfig::makeAll( Server &server, std::string const &filepath )
 {
+	mappingConfigs(filepath);
 	std::map<std::string, Config *>::iterator it;
 	for (it = getMapConfig().begin(); it != getMapConfig().end(); it++)
 	{
@@ -82,6 +83,9 @@ void	MapConfig::makeAll( Server &server )
 	server.listeningServers();
 }
 
+/**
+ * Parse the configuration file to create the server objects, further parsing is done in Config::makeConfig
+ */
 void	MapConfig::mappingConfigs( std::string const &filepath )
 {
 	std::ifstream   infile(filepath.c_str());
@@ -167,6 +171,9 @@ void	MapConfig::mappingConfigs( std::string const &filepath )
 	infile.close();
 }
 
+/**
+ * Check if the configuration is valid
+ */
 void	MapConfig::checkValidConfig( Config *config )
 {
 	if (config->getRoot().empty())
@@ -191,7 +198,12 @@ void	MapConfig::checkValidConfig( Config *config )
 	}
 	if (config->getLocations().empty())
 	{
-		std::cerr << "ERROR: location value is missing" << std::endl;
+		std::cerr << "ERROR: root location is missing" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (config->getHasRootLocation() == false)
+	{
+		std::cerr << "ERROR: root location is missing" << std::endl;
 		throw Webserv::NoException();
 	}
 }

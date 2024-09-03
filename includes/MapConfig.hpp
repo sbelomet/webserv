@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   MapConfig.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 09:44:19 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/26 12:54:08 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/08/28 14:47:48 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,29 +28,30 @@ class MapConfig
 {
 	private:
 		std::map<std::string, Config *> _map_config;
+		
+		MapConfig( MapConfig const &copy );
+		MapConfig const &operator=( MapConfig const &copy );
+		
+		void	checkValidConfig( Config *config );
+		void	mappingConfigs( std::string const &filepath );
 	public:
 		MapConfig( void );
 		~MapConfig( void );
-		MapConfig( MapConfig const &copy );
-
-		MapConfig const &operator=( MapConfig const &copy );
 
 		/* getters */
 
-		std::map<std::string, Config *> &getMapConfig(void);
-		std::map<std::string, Config *> const &getMapConfig(void) const;
+		std::map<std::string, Config *> &getMapConfig( void );
+		std::map<std::string, Config *> const &getMapConfig( void ) const;
 
 		/* setters */
 
-		void setMapConfig(std::map<std::string, Config *> const &mapConfig);
+		void setMapConfig( std::map<std::string, Config *> const &mapConfig );
 
 		/* methods */
 
-		void	makeAll( Server &server );
-		Config	*getConfigFromMap(std::string const &key);
-		void	mappingConfigs(std::string const &filepath);
-		void	insertConfig(std::string const &key, Config *config);
-		void	checkValidConfig( Config *config );
+		Config	*getConfigFromMap( std::string const &key );
+		void	insertConfig( std::string const &key, Config *config );
+		void	makeAll( Server &server, std::string const &filepath );
 };
 
 std::ostream &operator<<(std::ostream &out, MapConfig &obj);

@@ -6,13 +6,13 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:09 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/26 14:08:26 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/03 13:43:32 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
 
-Config::Config( void ) : _root(""), _host(""), _index(""), _client_max_body_size(0)
+Config::Config( void ) : _root(""), _host(""), _index(""), _has_root_location(false), _client_max_body_size(0)
 {}
 
 Config::~Config( void )
@@ -60,6 +60,11 @@ std::string const	&Config::getHost( void ) const
 std::string const	&Config::getIndex( void ) const
 {
 	return (_index);
+}
+
+bool const	&Config::getHasRootLocation( void ) const
+{
+	return (_has_root_location);
 }
 
 unsigned long const	&Config::getMaxClientBody( void ) const
@@ -250,6 +255,8 @@ void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitPar
 				it = loc_end;
 
 				inLocation->setLocation(location);
+				if (location == "/")
+					_has_root_location = true;
 				_locations.push_back(inLocation);
 
 				// check for opening parenthesis, if non-whitespace characters are between location value and parenthesis, throw error

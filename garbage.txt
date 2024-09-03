@@ -1,0 +1,102 @@
+Manager.cpp
+
+/*
+
+# define BUFFER_SIZE 4096
+
+enum ending
+{
+	BAD_REQUEST = 1,
+	END_REQUEST = 2,
+	CLOSE_CONNECTION = 3
+};
+
+# include <limits>
+
+bool	Manager::epollWaiting( Server &server )
+{
+	int			index = -1;
+	epoll_event	events[MAX_EVENTS];
+
+	int const	ndfs = epoll_wait(server.getEpollFd(), events, MAX_EVENTS, -1);
+	if (ndfs < 0)
+	{
+		perror("epoll_wait");
+		throw (Webserv::NoException());
+	}
+	for (int i = 0; i < ndfs; i++)
+	{
+		
+		if ((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP)
+			|| (!(events[i].events & EPOLLIN)))
+		{
+			std::cout << "close connection" << std::endl;
+			close(events[i].data.fd);
+			return (true);
+		}
+		else if (events[i].data.fd == 0)
+		{
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			return (false);
+		}
+		else if ((index = server.newConnection(events[i].data.fd)) != -1)
+		{
+			if (!acceptConnection(server, index))
+				return (false);
+		}
+		else
+		{
+			readRequest(server, events[i].data.fd);
+		}
+	}
+	return (true);
+}
+
+static void	processResponse(Server &server, httpRequest &request, int const &fd,
+	int const &socketIndex, int &end)
+{
+	HttpResponse	response(server.getConfigFromServer(socketIndex), request);
+	
+	std::vector<int> const	sockets = server.getSockets();
+	if (end == END_REQUEST || end == CLOSE_CONNECTION)
+	{
+		epoll_ctl(server.getEpollFd(), EPOLL_CTL_DEL, fd, NULL);
+		close(fd);
+		return ;
+	}
+	else if (end != BAD_REQUEST)
+	{
+		send(fd, "HTTP/1.1 200 OK\nContent-Type: text/plain; charset=utf-8\nContent-Length: 12\n\nHello world!", 73, 0);
+	}
+}
+
+void	Manager::readRequest( Server &server, int const &fd )
+{
+	int			end = 0;
+	httpRequest	request;
+	int			read_bytes = 0;
+	char		buff[BUFFER_SIZE + 1] = {0};
+	int const	socketIndex = server.getIndexSocketFromNewConnections(fd);
+	
+	read_bytes = recv(fd, buff, BUFFER_SIZE, 0);
+	if (read_bytes == 0)
+		end = CLOSE_CONNECTION;
+	else if (read_bytes < 0)
+		end = END_REQUEST;
+	buff[read_bytes] = 0;
+	if (request.parseRequest(buff, read_bytes) == -1)
+		end = BAD_REQUEST;
+	processResponse(server, request, fd, socketIndex, end);
+}
+
+*/
+
+HttpHeader
+
+std::pair<std::string, std::string>	_contentType; // type of file returned, see mime types.
+std::pair<std::string, std::string>	_keepAlive; // timeout=5, max=999 example
+std::pair<std::string, std::string>	_connection; // keep-alive or close.
+std::pair<std::string, std::string>	_transferEncoding; // always chunked (no chunk header), optional.
+std::pair<std::string, std::string>	_contentLength; // number of bytes sended (length header + body), optional.
+std::pair<std::string, std::string>	_xContentTypeOptions; // always "nosniff"
+std::pair<std::string, std::string>	_AccessControlAllowOrigin; // always "*"

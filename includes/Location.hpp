@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 14:08:16 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/26 11:25:41 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/08/28 14:59:26 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,12 +55,12 @@ class Location
 		bool						_autoindex_set;
 		s_methods					_allowed_methods;
 		unsigned long				_client_max_body_size; // optional
+
+		Location( Location const &copy );
+		Location const &operator=( Location const &copy );
 	public:
 		Location( void );
 		~Location( void );
-		Location( Location const &copy );
-
-		Location const &operator=( Location const &copy );
 
 		/* getters */
 		bool const	&getAutoindex( void ) const;
