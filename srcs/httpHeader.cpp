@@ -3,23 +3,24 @@
 /*                                                        :::      ::::::::   */
 /*   httpHeader.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 13:38:03 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/03 15:04:49 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/04 15:34:57 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "httpHeader.hpp"
 
-HttpHeader::HttpHeader( void ): _sizeHeaders(7)
+HttpHeader::HttpHeader( void ): _firstLine(std::string())
 {
 	short const size = getSizeHeaders();
 	std::string	headersKey[size] = {"Access-Control-Allow-Origin: ", "Connection: ",
-	"Content-Type: ", "Keep-Alive: ", "Transfer-Encoding: ", "X-Content-Type-Options: ",
-	"Content-Length: "};
-	std::string	headersValue[size] = {"*", "", "", "timeout=5, max=999", "",
-		"nosniff", ""};
+		"Content-Type: ", "Date: ", "Keep-Alive: ", "Location: ", "Transfer-Encoding: ",
+		"X-Content-Type-Options: ", "Content-Length: "};
+	std::string	headersValue[size] = {"*", std::string(), std::string(),
+		std::string(), "timeout=5, max=997", std::string(), std::string(),
+		"nosniff", std::string()};
 	for (size_t i = 0; i < size; i++)
 	{
 		std::pair<std::string, std::string> pair;
@@ -84,10 +85,20 @@ void	HttpHeader::setInfoStatusCode( std::string const &infoStatusCode )
 	_infoStatusCode = infoStatusCode;
 }
 
+std::string const &HttpHeader::getAcceptTypefiles( void ) const
+{
+	return (_acceptTypefiles);
+}
+
+void	HttpHeader::setAcceptTypefiles( std::string const &acceptTypefiles )
+{
+	_acceptTypefiles = acceptTypefiles;
+}
+
 /*
 * Return need to be checked, pair can be empty.
 */
-std::pair<std::string, std::string>	const	&HttpHeader::getPairFromHeaders(
+std::pair<std::string, std::string>	const	HttpHeader::getPairFromHeaders(
 	std::string const &key ) const
 {
 	std::vector<std::pair<std::string, std::string> >::const_iterator	it;
@@ -122,4 +133,14 @@ void	HttpHeader::pushPairToHeaders( std::pair<std::string, std::string> const &p
 std::vector<std::pair<std::string, std::string> > const	&HttpHeader::getHeaders( void ) const
 {
 	return (_headers);
+}
+
+/*  */
+
+void	HttpHeader::updateStatus( short const &statusCode )
+{
+	if (statusCode == 400)
+	{
+		// TO DO
+	}
 }

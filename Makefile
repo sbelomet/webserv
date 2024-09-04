@@ -6,7 +6,7 @@
 #    By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/04/04 10:58:20 by sbelomet          #+#    #+#              #
-#    Updated: 2024/08/29 10:32:16 by sbelomet         ###   ########.fr        #
+#    Updated: 2024/09/04 09:52:58 by sbelomet         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,7 +34,8 @@ WHITE		=	\033[0;97m
 RAINBOW		=	$(RED)-$(YELLOW)-$(GREEN)-$(CYAN)-$(BLUE)-$(PURPLE)-
 
 # Files
-FILES		=	main Config MapConfig lexer_utils Server Location Webserv Manager httpRequest
+FILES		=	main Config MapConfig lexer_utils Server Location Webserv Manager \
+				httpRequest httpResponse httpHeader
 
 SRCS		=	$(addprefix $(SRCS_DIR), $(addsuffix .cpp, $(FILES)))
 OBJS		=	$(addprefix $(OBJS_DIR), $(addsuffix .o, $(FILES)))

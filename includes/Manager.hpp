@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 12:46:56 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/30 09:59:23 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/04 13:28:32 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ class Manager
 		void	epollStarting( Server &server );
 		void	readRequest( Server &server, int const &fd );
 		bool	acceptConnection( Server &server, int const &index );
+		void	manageResponse( Server &server, httpRequest const &request,
+			int const &socketIndex );
 	public:
 		Manager();
 		~Manager();

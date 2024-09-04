@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:20 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/03 15:27:02 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/04 15:24:18 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,10 +27,12 @@ class HttpResponse
 		HttpHeader	_header;
 		Config		*_config;
 
-		std::string	_method;
-		std::string _location;
-		bool		_autoindex; // listing files if no index and autoindex is enable
-		short		_requestStatusCode;
+		std::string	_path; // ex. -> /index.html
+		std::string	_method; // GET POST DELETE
+		bool		_toRedir; // return is location 
+		bool		_autoindex; // listing or not directories
+		short		_requestStatusCode; // status code of request parsing
+		std::string	_maxClientBodySize; // TO DO
 		
 		HttpResponse( void );
 		HttpResponse( HttpResponse const &copy );
@@ -38,6 +40,14 @@ class HttpResponse
 	public:
 		~HttpResponse( void );
 		HttpResponse( Config *&config, httpRequest const &request );
+
+		/* getters - setters */
+
+		std::string const &getPath( void ) const;
+		void	setPath( std::string const &path );
+
+		bool const &getToRedir( void ) const;
+		void	setToRedir( bool const &toRedir );
 
 		bool const &getAutoindex( void ) const;
 		void	setAutoindex( bool const &autoindex );
@@ -52,13 +62,15 @@ class HttpResponse
 		std::string const &getMethod( void ) const;
 		void	setMethod( std::string const &method );
 
-		std::string const &getLocation( void ) const;
-		void	setLocation( std::string const &location );
-
 		short const &getRequestStatusCode( void ) const;
 		void	setRequestStatusCode( short const &requestStatusCode );
 
-		void	sendResponse( void );
+		std::string const &getMaxClientBodySize( void ) const;
+		void	setMaxClientBodySize( std::string const &requestStatusCode );
+
+		/* methods */
+
+		void	updateHeader( short const &statusCode );
 };
 
 #endif

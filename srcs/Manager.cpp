@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Manager.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 13:34:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/03 15:51:51 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/04 15:31:58 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,6 +132,18 @@ void	Manager::epollStarting( Server &server )
 	//}
 }
 
+void	Manager::manageResponse( Server &server, httpRequest const &request,
+	int const &socketIndex )
+{
+	HttpResponse	response(server.getConfigFromServer(socketIndex), request);
+
+	if (response.getRequestStatusCode() == 400)
+	{
+		// TO DO
+	}
+
+}
+
 /**
  * Read the request from the client, then send it to parseRequest
 */
@@ -157,18 +169,17 @@ void	Manager::readRequest( Server &server, int const &fd )
 	}
 	buff[read_bytes] = '\0';
 	request.parseRequest(buff, read_bytes);
-	if (request.getStatusCode() == 400)
-	{
-		std::cout << "Bad request" << std::endl;
-		epoll_ctl(server.getEpollFd(), EPOLL_CTL_DEL, fd, NULL);
-		close(fd);
-		return ;
-	}
+	int const		socketIndex = server.getIndexSocketFromNewConnections(fd);
+	//if (request.getStatusCode() == 400)
+	//{
+	//	std::cout << "Bad request" << std::endl;
+	//	epoll_ctl(server.getEpollFd(), EPOLL_CTL_DEL, fd, NULL);
+	//	close(fd);
+	//	return ;
+	//}
 	//std::cout << request << std::endl;
 	//send(fd, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!", 74, 0);
 	//close(fd);
-	int const		socketIndex = server.getIndexSocketFromNewConnections(fd);
-	HttpResponse	response(server.getConfigFromServer(socketIndex), request);
 }
 
 void	Manager::makeAll( Server &server, std::string const &filepath )

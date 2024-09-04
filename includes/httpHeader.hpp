@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpHeader.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 10:33:55 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/03 15:29:20 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/04 15:34:27 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,17 +22,21 @@ class Config;
 class HttpHeader
 {
 	private:
-		std::string	_protocol;
-		short		_sizeHeaders;
-		std::string	_statusCode; // 200, 201, 404
-		std::string	_infoStatusCode; // Created, Forbidden, etc..
-		std::vector<std::pair<std::string, std::string> > _headers;
+		std::string			_protocol;
+		std::string			_firstLine;
+		std::string			_statusCode; // 200, 201, 404
+		std::string			_infoStatusCode; // Created, Forbidden, etc..
+		std::string			_acceptTypefiles;
+		static short const	_sizeHeaders = 9;
+		std::vector<std::pair<std::string, std::string> > _headers; // Date to do
 	public:
 		HttpHeader( void );
 		virtual ~HttpHeader( void );
 
 		HttpHeader( HttpHeader const &copy );
 		HttpHeader const &operator=( HttpHeader const &copy );
+
+		/* getters - setters */
 
 		short const &getSizeHeaders( void ) const;
 
@@ -45,12 +49,19 @@ class HttpHeader
 		std::string const &getInfoStatusCode( void ) const;
 		void	setInfoStatusCode( std::string const &infoStatusCode );
 
+		std::string const &getAcceptTypefiles( void ) const;
+		void	setAcceptTypefiles( std::string const &acceptTypefiles );
+
 		std::pair<std::string, std::string>	const	&getPairFromHeaders(
 			std::string const &key ) const;
 		std::vector<std::pair<std::string, std::string> >	&getHeaders( void );
 		void	modifyValuePair( std::string const &key, std::string const &value );
 		void	pushPairToHeaders( std::pair<std::string, std::string> const &pair );
 		std::vector<std::pair<std::string, std::string> > const	&getHeaders( void ) const;
+
+		/* methods  */
+
+		void	updateStatus( short const &statusCode );
 };
 
 #endif

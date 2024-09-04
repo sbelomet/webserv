@@ -91,12 +91,7 @@ void	Manager::readRequest( Server &server, int const &fd )
 
 */
 
-HttpHeader
-
-std::pair<std::string, std::string>	_contentType; // type of file returned, see mime types.
-std::pair<std::string, std::string>	_keepAlive; // timeout=5, max=999 example
-std::pair<std::string, std::string>	_connection; // keep-alive or close.
-std::pair<std::string, std::string>	_transferEncoding; // always chunked (no chunk header), optional.
-std::pair<std::string, std::string>	_contentLength; // number of bytes sended (length header + body), optional.
-std::pair<std::string, std::string>	_xContentTypeOptions; // always "nosniff"
-std::pair<std::string, std::string>	_AccessControlAllowOrigin; // always "*"
+To create a temp file
+std::FILE	*tmpFile = std::tmpfile();
+	if (tmpFile == NULL)
+		throw (Webserv::NoException());

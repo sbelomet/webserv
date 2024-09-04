@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 10:31:13 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/03 15:47:15 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/04 10:20:06 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ class httpRequest
 		~httpRequest();
 
 		/* Getters */
+
 		short const			&getStatusCode( void ) const;
 		std::string const	&getMethod( void ) const;
 		std::string const	&getPath( void ) const;
@@ -51,6 +52,7 @@ class httpRequest
 		std::string const	&getBody( void ) const;
 
 		/* Methods */
+
 		void	parseRequest( char *buffer, int const &size );
 };
 

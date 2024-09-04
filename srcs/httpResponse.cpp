@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:36 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/03 15:48:10 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/04 15:29:00 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,13 +34,15 @@ HttpResponse const	&HttpResponse::operator=( HttpResponse const &copy )
 }
 
 HttpResponse::HttpResponse( Config *&config, httpRequest const &request ):
-    _header(HttpHeader()), _config(config), _method(request.getMethod()),
-	_location(request.getPath()), _autoindex(false),
-	_requestStatusCode(request.getStatusCode())
+    _header(HttpHeader()), _config(config), _path(request.getPath()),
+	_method(request.getMethod()), _toRedir(false), _autoindex(false),
+	_requestStatusCode(request.getStatusCode()),
+	_maxClientBodySize(std::string())
 {
     getHeader().setProtocol(request.getVersion());
 	std::map<std::string, std::string>	headers = request.getHeaders();
 	getHeader().modifyValuePair("Connection", headers["Connection"]);
+	getHeader().setAcceptTypefiles(headers["Accept"]);
 }
 
 /*  */
@@ -48,6 +50,11 @@ HttpResponse::HttpResponse( Config *&config, httpRequest const &request ):
 HttpHeader &HttpResponse::getHeader( void )
 {
     return (_header);
+}
+
+bool const &HttpResponse::getToRedir( void ) const
+{
+	return (_toRedir);
 }
 
 bool const &HttpResponse::getAutoindex( void ) const
@@ -60,6 +67,16 @@ Config * const &HttpResponse::getConfig( void ) const
     return (_config);
 }
 
+std::string const &HttpResponse::getPath( void ) const
+{
+	return (_path);
+}
+
+void	HttpResponse::setToRedir( bool const &toRedir )
+{
+	_toRedir = toRedir;
+}
+
 HttpHeader const &HttpResponse::getHeader( void ) const
 {
 	return (_header);
@@ -70,14 +87,14 @@ std::string const &HttpResponse::getMethod( void ) const
 	return (_method);
 }
 
+void	HttpResponse::setPath( std::string const &path )
+{
+	_path = path;
+}
+
 void	HttpResponse::setConfig( Config * const &config )
 {
 	_config = config;
-}
-
-std::string const &HttpResponse::getLocation( void ) const
-{
-	return (_location);
 }
 
 void	HttpResponse::setHeader( HttpHeader const &header )
@@ -100,9 +117,9 @@ short const &HttpResponse::getRequestStatusCode( void ) const
 	return (_requestStatusCode);
 }
 
-void	HttpResponse::setLocation( std::string const &location )
+std::string const &HttpResponse::getMaxClientBodySize( void ) const
 {
-	_location = location;
+	return (_maxClientBodySize);
 }
 
 void	HttpResponse::setRequestStatusCode( short const &requestStatusCode )
@@ -110,21 +127,19 @@ void	HttpResponse::setRequestStatusCode( short const &requestStatusCode )
 	_requestStatusCode = requestStatusCode;
 }
 
-/*  */
-
-void	HttpResponse::sendResponse( void )
+void	HttpResponse::setMaxClientBodySize( std::string const &maxClientBodySize )
 {
-	std::FILE	*tmpFile = std::tmpfile();
-	if (tmpFile == NULL)
-		throw (Webserv::NoException());
-	if (getRequestStatusCode() == 400)
-	{
-		HttpHeader	header = getHeader();
-		std::string	headersKey[7] = {"Access-Control-Allow-Origin: ", "Connection: ",
-		"Content-Type: ", "Keep-Alive: ", "Transfer-Encoding: ", "X-Content-Type-Options: ",
-		"Content-Length: "};
-		std::string	firstLine = header.getProtocol() + " " + "400" + "Bad Request\n";
-		std::fputs(firstLine.c_str(), tmpFile);
-		// TO DO
-	}
+	_maxClientBodySize = maxClientBodySize;
+}
+
+void	HttpResponse::updateHeader( short const &statusCode )
+{
+	// Just update common headers
+	HttpHeader	header = getHeader();
+	if (statusCode != 200)
+		header.modifyValuePair("Connection", "close");
+	else
+		header.modifyValuePair("Connection", "keep-alive");
+	
+	
 }
