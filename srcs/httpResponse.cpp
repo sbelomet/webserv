@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:36 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/04 15:29:00 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/05 10:13:56 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,6 @@ void	HttpResponse::setMaxClientBodySize( std::string const &maxClientBodySize )
 
 void	HttpResponse::updateHeader( short const &statusCode )
 {
-	// Just update common headers
 	HttpHeader	header = getHeader();
 	if (statusCode != 200)
 		header.modifyValuePair("Connection", "close");

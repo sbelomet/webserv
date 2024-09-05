@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 10:43:35 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/04 14:27:55 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/05 13:31:41 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,9 @@ CGI::~CGI()
 	}
 }
 
-void CGI::fillEnv()
+std::map<std::string, std::string> const &CGI::getEnv( void ) const { return (_env); }
+
+void CGI::fillEnv(std::string const &script)
 {
 	_env["i dont know"] = "what to put here";
 	_env["so here"] = "is a random env variable";
@@ -50,20 +52,16 @@ void CGI::fillEnv()
 
 	_argv = new char*[3];
 	_argv[0] = strdup("/usr/bin/python3");
-	_argv[1] = strdup("cgi.py");
+	_argv[1] = strdup(script.c_str());
 	_argv[2] = NULL;
 }
 
-void CGI::executeCGI()
+void CGI::executeCGI(int const &fd)
 {
 	pid_t pid;
-	int pipefd[2];
+	FILE *tmpfile = std::tmpfile();
+	int tmpfd = fileno(tmpfile);
 
-	if (pipe(pipefd) == -1)
-	{
-		// error 500
-		return ;
-	}
 	pid = fork();
 	if (pid == -1)
 	{
@@ -72,11 +70,24 @@ void CGI::executeCGI()
 	}
 	else if (pid == 0)
 	{
-		dup2(pipefd[0], STDIN_FILENO);
-		dup2(pipefd[1], STDOUT_FILENO);
-		close(pipefd[0]);
-		close(pipefd[1]);
+		dup2(tmpfd, STDOUT_FILENO);
 		int exit_status = execve(_argv[0], _argv, _malloc_env);
 		exit(exit_status);
 	}
+	else
+	{
+		waitpid(pid, NULL, 0);
+	}
+	std::string response = "";
+	char buffer[1024];
+	rewind(tmpfile);
+	while (!feof(tmpfile))
+	{
+		if (fgets(buffer, 1024, tmpfile) == NULL)
+			break;
+		response += buffer;
+	}
+	close(tmpfd);
+	std::cout << response << std::endl;
+	write(fd, response.c_str(), response.size());
 }

@@ -6,13 +6,14 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 10:31:17 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/03 15:48:32 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/05 11:17:03 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "httpRequest.hpp"
 
-httpRequest::httpRequest( void ) : _status_code(0), _method(""), _path(""), _version(""), _body("") {} 
+httpRequest::httpRequest( void ) : _status_code(0), _method(""),
+	_path(""), _version(""), _body(""), _haveBody(false), _bodySize(0) {} 
 httpRequest::~httpRequest( void ) {}
 httpRequest::httpRequest( httpRequest const &copy ) { *this = copy; }
 
@@ -25,6 +26,9 @@ httpRequest const	&httpRequest::operator=( httpRequest const &copy )
 		_path = copy._path;
 		_version = copy._version;
 		_headers = copy._headers;
+		_body = copy._body;
+		_haveBody = copy._haveBody;
+		_bodySize = copy._bodySize;
 	}
 	return (*this);
 }
@@ -36,6 +40,8 @@ std::string const	&httpRequest::getVersion( void ) const { return (_version); }
 std::map<std::string, std::string>	&httpRequest::getHeaders( void ) { return (_headers); }
 std::map<std::string, std::string> const &httpRequest::getHeaders( void ) const { return (_headers); }
 std::string const	&httpRequest::getBody( void ) const { return (_body); }
+bool const			&httpRequest::getHaveBody( void ) const { return (_haveBody); }
+size_t const		&httpRequest::getBodySize( void ) const { return (_bodySize); }
 
 /**
  * Parse the request and populate the class attributes
@@ -152,6 +158,7 @@ int	httpRequest::checkBody( std::string::iterator &it, std::string::iterator req
 	}
 	it = end + 2;
 	_body = std::string(it, reqEnd);
+	_bodySize = _body.size();
 	return 0;
 }
 

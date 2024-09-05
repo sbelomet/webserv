@@ -6,13 +6,13 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:09 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/03 13:43:32 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/05 11:35:48 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
 
-Config::Config( void ) : _root(""), _host(""), _index(""), _has_root_location(false), _client_max_body_size(0)
+Config::Config( void ) : _root(""), _host(""), _index(""), _has_root_location(false), _client_max_body_size(1)
 {}
 
 Config::~Config( void )
@@ -47,114 +47,33 @@ Config const    &Config::operator=( Config const &copy )
 
 /* */
 
-std::string const	&Config::getRoot( void ) const
-{
-	return (_root);
-}
-
-std::string const	&Config::getHost( void ) const
-{
-	return (_host);
-}
-
-std::string const	&Config::getIndex( void ) const
-{
-	return (_index);
-}
-
-bool const	&Config::getHasRootLocation( void ) const
-{
-	return (_has_root_location);
-}
-
-unsigned long const	&Config::getMaxClientBody( void ) const
-{
-	return (_client_max_body_size);
-}
-
-std::vector<Location *> const	&Config::getLocations( void ) const
-{
-	return (_locations);
-}
-
-std::vector<std::string> const	&Config::getListen( void ) const
-{
-	return (_listen);
-}
-
-std::vector<std::string> const	&Config::getServerName( void ) const
-{
-	return (_server_name);
-}
-
-std::map<short, std::string> const	&Config::getErrorPages( void ) const
-{
-	return (_error_pages);
-}
+std::string const	&Config::getRoot( void ) const { return (_root); }
+std::string const	&Config::getHost( void ) const { return (_host); }
+std::string const	&Config::getIndex( void ) const { return (_index); }
+bool const	&Config::getHasRootLocation( void ) const {return (_has_root_location); }
+unsigned long const	&Config::getMaxClientBody( void ) const {return (_client_max_body_size); }
+std::vector<Location *> const	&Config::getLocations( void ) const {return (_locations); }
+std::vector<std::string> const	&Config::getListen( void ) const {return (_listen); }
+std::vector<std::string> const	&Config::getServerName( void ) const {return (_server_name); }
+std::map<short, std::string> const	&Config::getErrorPages( void ) const {return (_error_pages); }
 
 /*  */
 
-void	Config::setRoot( std::string const &root )
-{
-	_root = root;
-}
-
-void	Config::setHost( std::string const &host )
-{
-	_host = host;
-}
-
-void	Config::setIndex( std::string const &index )
-{
-	_index = index;
-}
-
-void	Config::setListen( std::vector<std::string> const &listen )
-{
-	_listen = listen;
-}
-
-void	Config::setMaxClientBody( unsigned long const &maxClientBody )
-{
-	_client_max_body_size = maxClientBody;
-}
-
-void	Config::setLocations( std::vector<Location *> const &locations )
-{
-	_locations = locations;
-}
-
-void	Config::setServerName( std::vector<std::string> const &serverName )
-{
-	_server_name = serverName;
-}
-
-void	Config::setErrorPages( std::map<short, std::string> const &errorPages )
-{
-	_error_pages = errorPages;
-}
+void	Config::setRoot( std::string const &root ) { _root = root; }
+void	Config::setHost( std::string const &host ) { _host = host; }
+void	Config::setIndex( std::string const &index ) { _index = index; }
+void	Config::setListen( std::vector<std::string> const &listen ) { _listen = listen; }
+void	Config::setMaxClientBody( unsigned long const &maxClientBody ) { _client_max_body_size = maxClientBody; }
+void	Config::setLocations( std::vector<Location *> const &locations ) { _locations = locations; }
+void	Config::setServerName( std::vector<std::string> const &serverName ) { _server_name = serverName; }
+void	Config::setErrorPages( std::map<short, std::string> const &errorPages ) { _error_pages = errorPages; }
 
 /*  */
 
-void	Config::pushListen( std::string const &listen )
-{
-	_listen.push_back(listen);
-}
-
-void	Config::pushLocation( Location *&location )
-{
-	_locations.push_back(location);
-}
-
-void	Config::pushServerName( std::string const &serverName )
-{
-	_server_name.push_back(serverName);
-}
-
-void	Config::insertErrorPage( short const &num, std::string const &file )
-{
-	_error_pages[num] = file;
-}
+void	Config::pushListen( std::string const &listen ) { _listen.push_back(listen); }
+void	Config::pushLocation( Location *&location ) { _locations.push_back(location); }
+void	Config::pushServerName( std::string const &serverName ) { _server_name.push_back(serverName); }
+void	Config::insertErrorPage( short const &num, std::string const &file ) { _error_pages[num] = file; }
 
 /*  */
 
@@ -567,11 +486,6 @@ void	Config::parseKeywordErrorPage( std::vector<std::string> const &values, int 
 
 void	Config::parseKeywordClientMaxBodySize( std::vector<std::string> const &values, int const &lineCount, Location *location )
 {
-	if ((_client_max_body_size != 0 && !location) || (location && location->getMaxClientBody() != 0))
-	{
-		std::cerr << "ERROR on line " << lineCount << ": Client max body size variable already defined in scope" << std::endl;
-		throw Webserv::NoException();
-	}
 	if (values.size() != 1)
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Too many values for client max body size variable" << std::endl;

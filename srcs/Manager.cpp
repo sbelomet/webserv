@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Manager.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 13:34:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/04 15:31:58 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/05 13:54:55 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,10 +138,8 @@ void	Manager::manageResponse( Server &server, httpRequest const &request,
 	HttpResponse	response(server.getConfigFromServer(socketIndex), request);
 
 	if (response.getRequestStatusCode() == 400)
-	{
-		// TO DO
-	}
-
+		response.getHeader().updateStatus(400);
+	
 }
 
 /**
@@ -169,7 +167,7 @@ void	Manager::readRequest( Server &server, int const &fd )
 	}
 	buff[read_bytes] = '\0';
 	request.parseRequest(buff, read_bytes);
-	int const		socketIndex = server.getIndexSocketFromNewConnections(fd);
+	//int const		socketIndex = server.getIndexSocketFromNewConnections(fd);
 	//if (request.getStatusCode() == 400)
 	//{
 	//	std::cout << "Bad request" << std::endl;
@@ -180,6 +178,9 @@ void	Manager::readRequest( Server &server, int const &fd )
 	//std::cout << request << std::endl;
 	//send(fd, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!", 74, 0);
 	//close(fd);
+	CGI cgi;
+	cgi.fillEnv("cgi-bin/hello.py");
+	cgi.executeCGI(fd);
 }
 
 void	Manager::makeAll( Server &server, std::string const &filepath )

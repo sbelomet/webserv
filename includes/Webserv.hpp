@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:12:17 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/03 13:09:30 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/05 11:36:35 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 # define RESET "\033[0m"
 
 /* LEXER UTILS */
+
 bool isWhitespace(char c);
 bool isSeparatorNW(char c);
 bool isSeparator(char c);

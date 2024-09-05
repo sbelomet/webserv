@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 10:31:13 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/04 10:20:06 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/05 11:16:53 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,8 @@ class httpRequest
 		std::string	_version;
 		std::map<std::string, std::string> _headers;
 		std::string	_body;
+		bool		_haveBody;
+		size_t		_bodySize;
 
 		httpRequest( httpRequest const &copy );
 		httpRequest const &operator=( httpRequest const &copy );
@@ -42,7 +44,6 @@ class httpRequest
 		~httpRequest();
 
 		/* Getters */
-
 		short const			&getStatusCode( void ) const;
 		std::string const	&getMethod( void ) const;
 		std::string const	&getPath( void ) const;
@@ -50,9 +51,10 @@ class httpRequest
 		std::map<std::string, std::string>	&getHeaders( void );
 		std::map<std::string, std::string> const &getHeaders( void ) const;
 		std::string const	&getBody( void ) const;
+		bool const			&getHaveBody( void ) const;
+		size_t const		&getBodySize( void ) const;
 
 		/* Methods */
-
 		void	parseRequest( char *buffer, int const &size );
 };
 

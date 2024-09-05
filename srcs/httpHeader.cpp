@@ -6,13 +6,13 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 13:38:03 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/04 15:34:57 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/05 11:09:13 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "httpHeader.hpp"
 
-HttpHeader::HttpHeader( void ): _firstLine(std::string())
+HttpHeader::HttpHeader( void ) : _sizeHeaders(9) // added for compilation
 {
 	short const size = getSizeHeaders();
 	std::string	headersKey[size] = {"Access-Control-Allow-Origin: ", "Connection: ",
@@ -21,7 +21,7 @@ HttpHeader::HttpHeader( void ): _firstLine(std::string())
 	std::string	headersValue[size] = {"*", std::string(), std::string(),
 		std::string(), "timeout=5, max=997", std::string(), std::string(),
 		"nosniff", std::string()};
-	for (size_t i = 0; i < size; i++)
+	for (short i = 0; i < size; i++)
 	{
 		std::pair<std::string, std::string> pair;
 		pair = std::make_pair<std::string, std::string>(headersKey[i], headersValue[i]);
@@ -139,8 +139,61 @@ std::vector<std::pair<std::string, std::string> > const	&HttpHeader::getHeaders(
 
 void	HttpHeader::updateStatus( short const &statusCode )
 {
-	if (statusCode == 400)
+	switch (statusCode)
 	{
-		// TO DO
+		case 200:
+			setStatusCode("200");
+			setInfoStatusCode("Ok");
+			break;
+		case 204:
+			setStatusCode("204");
+			setInfoStatusCode("No Content");
+			break;
+		case 301:
+			setStatusCode("301");
+			setInfoStatusCode("Moved Permanently");
+			break;
+		case 302:
+			setStatusCode("302");
+			setInfoStatusCode("Found");
+			break;
+		case 400:
+			setStatusCode("400");
+			setInfoStatusCode("Bad Request");
+			break;
+		case 401:
+			setStatusCode("401");
+			setInfoStatusCode("Unauthorized");
+			break;
+		case 403:
+			setStatusCode("403");
+			setInfoStatusCode("Forbidden");
+			break;
+		case 404:
+			setStatusCode("404");
+			setInfoStatusCode("Not Found");
+			break;
+		case 405:
+			setStatusCode("405");
+			setInfoStatusCode("Method Not Allowed");
+			break;
+		case 413:
+			setStatusCode("413");
+			setInfoStatusCode("Payload Too Large");
+			break;
+		case 418:
+			setStatusCode("418");
+			setInfoStatusCode("I'm a teapot");
+			break;
+		case 500:
+			setStatusCode("500");
+			setInfoStatusCode("Internal Server Error");
+			break;
+		case 501:
+			setStatusCode("501");
+			setInfoStatusCode("Not Implemented");
+			break;
+		default:
+			break;
 	}
 }

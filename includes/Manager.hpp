@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Manager.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 12:46:56 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/04 13:28:32 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/05 11:44:30 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # include <sys/epoll.h>
 # include "httpRequest.hpp"
 # include "httpResponse.hpp"
+# include "CGI.hpp"
 
 class Server;
 

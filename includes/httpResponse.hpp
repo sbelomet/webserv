@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:20 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/04 15:24:18 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/05 10:14:47 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ class HttpResponse
 		Config		*_config;
 
 		std::string	_path; // ex. -> /index.html
-		std::string	_method; // GET POST DELETE
+		std::string	_method; // GET or POST or DELETE
 		bool		_toRedir; // return is location 
 		bool		_autoindex; // listing or not directories
 		short		_requestStatusCode; // status code of request parsing
