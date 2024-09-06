@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:36 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/05 10:13:56 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/06 15:42:38 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ HttpResponse::HttpResponse( Config *&config, httpRequest const &request ):
     _header(HttpHeader()), _config(config), _path(request.getPath()),
 	_method(request.getMethod()), _toRedir(false), _autoindex(false),
 	_requestStatusCode(request.getStatusCode()),
-	_maxClientBodySize(std::string())
+	_maxClientBodySize(std::string()), _mimeType("text/html")
 {
     getHeader().setProtocol(request.getVersion());
 	std::map<std::string, std::string>	headers = request.getHeaders();
@@ -130,6 +130,11 @@ void	HttpResponse::setRequestStatusCode( short const &requestStatusCode )
 void	HttpResponse::setMaxClientBodySize( std::string const &maxClientBodySize )
 {
 	_maxClientBodySize = maxClientBodySize;
+}
+
+Mime const &HttpResponse::getMime( void ) const
+{
+	return (_mime);
 }
 
 void	HttpResponse::updateHeader( short const &statusCode )

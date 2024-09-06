@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 13:34:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/05 13:54:55 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/06 15:46:07 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,7 +139,10 @@ void	Manager::manageResponse( Server &server, httpRequest const &request,
 
 	if (response.getRequestStatusCode() == 400)
 		response.getHeader().updateStatus(400);
-	
+	Mime	mime;
+	mime = response.getMime();
+	std::string extension = response.getPath().substr(response.getPath().find_last_of('.') + 1);
+	mime.getMimeType(extension);
 }
 
 /**
@@ -167,6 +170,7 @@ void	Manager::readRequest( Server &server, int const &fd )
 	}
 	buff[read_bytes] = '\0';
 	request.parseRequest(buff, read_bytes);
+	manageResponse(server, request, server.getIndexSocketFromNewConnections(fd));
 	//int const		socketIndex = server.getIndexSocketFromNewConnections(fd);
 	//if (request.getStatusCode() == 400)
 	//{

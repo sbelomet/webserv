@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpResponse.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:20 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/05 10:14:47 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/06 15:41:07 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 # include "Config.hpp"
 # include "httpHeader.hpp"
 # include "httpRequest.hpp"
+# include "Mime.hpp"
 
 class Config;
 class HttpHeader;
@@ -26,10 +27,12 @@ class HttpResponse
 	private:
 		HttpHeader	_header;
 		Config		*_config;
+		Mime		_mime;
 
 		std::string	_path; // ex. -> /index.html
 		std::string	_method; // GET or POST or DELETE
 		bool		_toRedir; // return is location 
+		std::string	_mimeType; // ex. -> text/html, image/jpeg
 		bool		_autoindex; // listing or not directories
 		short		_requestStatusCode; // status code of request parsing
 		std::string	_maxClientBodySize; // TO DO
@@ -67,6 +70,8 @@ class HttpResponse
 
 		std::string const &getMaxClientBodySize( void ) const;
 		void	setMaxClientBodySize( std::string const &requestStatusCode );
+
+		Mime const &getMime( void ) const;
 
 		/* methods */
 
