@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:20 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/06 15:41:07 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/09 12:39:48 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,15 +27,16 @@ class HttpResponse
 	private:
 		HttpHeader	_header;
 		Config		*_config;
-		Mime		_mime;
 
+		int			_fd;
+		bool		_isOk; // bool to know is response is 200
 		std::string	_path; // ex. -> /index.html
 		std::string	_method; // GET or POST or DELETE
 		bool		_toRedir; // return is location 
 		std::string	_mimeType; // ex. -> text/html, image/jpeg
 		bool		_autoindex; // listing or not directories
 		short		_requestStatusCode; // status code of request parsing
-		std::string	_maxClientBodySize; // TO DO
+		size_t		_maxClientBodySize; // max size body for response
 		
 		HttpResponse( void );
 		HttpResponse( HttpResponse const &copy );
@@ -46,17 +47,22 @@ class HttpResponse
 
 		/* getters - setters */
 
-		std::string const &getPath( void ) const;
-		void	setPath( std::string const &path );
+		int const &getFd( void ) const;
+
+		bool const &getIsOk( void ) const;
+		void	setIsOk( bool const &path );
 
 		bool const &getToRedir( void ) const;
 		void	setToRedir( bool const &toRedir );
 
-		bool const &getAutoindex( void ) const;
-		void	setAutoindex( bool const &autoindex );
+		std::string const &getPath( void ) const;
+		void	setPath( std::string const &path );
 
 		Config * const &getConfig( void ) const;
 		void	setConfig( Config * const &config );
+
+		bool const &getAutoindex( void ) const;
+		void	setAutoindex( bool const &autoindex );
 
 		HttpHeader &getHeader( void );
 		HttpHeader const &getHeader( void ) const;
@@ -68,14 +74,15 @@ class HttpResponse
 		short const &getRequestStatusCode( void ) const;
 		void	setRequestStatusCode( short const &requestStatusCode );
 
-		std::string const &getMaxClientBodySize( void ) const;
-		void	setMaxClientBodySize( std::string const &requestStatusCode );
-
-		Mime const &getMime( void ) const;
+		size_t const &getMaxClientBodySize( void ) const;
+		void	setMaxClientBodySize( size_t const &requestStatusCode );
 
 		/* methods */
 
 		void	updateHeader( short const &statusCode );
+		int		checkPathRedir( Location *location, Location *rootLocation );
+		void	buildCheckPath( HttpResponse &response, Location *location );
+		std::string	extractPathExtension( std::string const &path );
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 14:09:46 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/26 11:43:05 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/09 13:39:42 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,11 @@ std::string const	&Location::getAlias( void ) const
 	return (_alias);
 }
 
+size_t const	&Location::getMaxClientBody( void ) const
+{
+	return (_client_max_body_size);
+}
+
 std::string const	&Location::getLocation( void ) const
 {
 	return (_location);
@@ -80,11 +85,6 @@ std::string const	&Location::getLocation( void ) const
 s_methods const	&Location::getAllowedMethods( void ) const
 {
 	return (_allowed_methods);
-}
-
-unsigned long const	&Location::getMaxClientBody( void ) const
-{
-	return (_client_max_body_size);
 }
 
 std::vector<std::string> const	&Location::getCgiPass( void ) const
@@ -125,9 +125,13 @@ void	Location::setReturn( s_return const &return_values )
 	_return.status = return_values.status;
 }
 
+// !!! Removes trailing slash
 void	Location::setLocation( std::string const &location )
 {
-	_location = location;
+	if (location.size() > 1 && location[location.size() - 1] == '/')
+		_location = location.substr(0, location.size() - 1);
+	else
+		_location = location;
 }
 
 void	Location::setAllowedMethods( s_methods const &allowedMethods )
@@ -142,7 +146,7 @@ void	Location::setCgiPass( std::vector<std::string> const &cgiPass )
 	_cgi_pass = cgiPass;
 }
 
-void	Location::setMaxClientBody( unsigned long const &maxClientBody )
+void	Location::setMaxClientBody( size_t const &maxClientBody )
 {
 	_client_max_body_size = maxClientBody;
 }
@@ -177,4 +181,16 @@ void	Location::setPathFromReturn( std::string const &path )
 void	Location::setStatusFromReturn( std::string const &status )
 {
 	_return.status = status;
+}
+
+bool	Location::isAllowedMethod( std::string const &method )
+{
+	s_methods	methods = getAllowedMethods();
+	if (method == "GET" && methods.get)
+		return (true);
+	else if (method == "POST" && methods.post)
+		return (true);
+	else if (method == "DELETE" && methods.remove)
+		return (true);
+	return (false);
 }

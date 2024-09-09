@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Config.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:14 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/05 11:30:12 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/06 15:06:47 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,10 +34,10 @@ class Config
 		std::string						_index;
 		std::vector<std::string>		_listen;
 		std::vector<Location *>			_locations;
-		std::vector<std::string>		_server_name; // optional
+		std::vector<std::string>		_server_name;
 		std::map<short, std::string>	_error_pages;
 		bool							_has_root_location;
-		unsigned long					_client_max_body_size;
+		size_t							_client_max_body_size;
 
 		Config( Config const &copy );
 		Config const &operator=( Config const &copy );
@@ -68,8 +68,8 @@ class Config
 		std::string const	&getRoot( void ) const;
 		std::string const	&getHost( void ) const;
 		std::string const	&getIndex( void ) const;
+		size_t const	&getMaxClientBody( void ) const;
 		bool const		&getHasRootLocation( void ) const;
-		unsigned long const	&getMaxClientBody( void ) const;
 		std::vector<std::string> const	&getListen( void ) const;
 		std::vector<Location *> const	&getLocations( void ) const;
 		std::vector<std::string> const	&getServerName( void ) const;
@@ -80,7 +80,7 @@ class Config
 		void	setRoot( std::string const & );
 		void	setHost( std::string const & );
 		void	setIndex( std::string const & );
-		void	setMaxClientBody( unsigned long const & );
+		void	setMaxClientBody( size_t const & );
 		void	setLocations( std::vector<Location *> const & );
 		void	setListen( std::vector<std::string> const & );
 		void	setServerName( std::vector<std::string> const & );
@@ -88,10 +88,11 @@ class Config
 
 		/* access methods for vectors/map */
 
-		void	pushLocation( Location *&location );
-		void	pushListen( std::string const &listen );
-		void	pushServerName( std::string const &serverName );
-		void	insertErrorPage( short const &num, std::string const &file );
+		void		pushLocation( Location *&location );
+		void		pushListen( std::string const &listen );
+		Location	*getSingleLocation( std::string const &path );
+		void		pushServerName( std::string const &serverName );
+		void		insertErrorPage( short const &num, std::string const &file );
 
 		/* methods */
 

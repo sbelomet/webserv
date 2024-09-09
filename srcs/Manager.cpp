@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 13:34:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/06 15:46:07 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/09 13:58:18 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,10 +139,38 @@ void	Manager::manageResponse( Server &server, httpRequest const &request,
 
 	if (response.getRequestStatusCode() == 400)
 		response.getHeader().updateStatus(400);
+	if (response.getRequestStatusCode() == 404)
+		response.getHeader().updateStatus(404);
+	Location	*location = response.getConfig()->getSingleLocation(response.getPath());
+	if (location == NULL)
+		throw (Webserv::NoException());
+	if (!location->isAllowedMethod(response.getMethod()))
+		response.getHeader().updateStatus(405);
+	if (response.checkPathRedir(location, response.getConfig()->getSingleLocation("/")) == 1)
+		response.getHeader().updateStatus(404);
+	if (!request.getBody().empty())
+	{
+		size_t	clientMaxBodySize = location->getMaxClientBody();
+		if (clientMaxBodySize > 1)
+			clientMaxBodySize = clientMaxBodySize * 1024;
+		else
+			clientMaxBodySize = 1024;
+		clientMaxBodySize = clientMaxBodySize * 1024;
+		size_t const	bodysize = request.getBody().size();
+		if (bodysize > clientMaxBodySize)
+			response.getHeader().updateStatus(413);
+		response.setMaxClientBodySize(clientMaxBodySize);
+	}
 	Mime	mime;
-	mime = response.getMime();
-	std::string extension = response.getPath().substr(response.getPath().find_last_of('.') + 1);
-	mime.getMimeType(extension);
+	std::string extension = response.extractPathExtension(response.getPath());
+	std::string	mimeType = mime.getMimeType(extension);
+	response.getHeader().modifyValuePair("Content-Type", mimeType);
+	
+	// set mime types
+	// build url and check other things
+	// check and send response error
+	// send response
+	// check reponse status
 }
 
 /**

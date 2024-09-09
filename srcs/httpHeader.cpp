@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpHeader.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 13:38:03 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/05 11:09:13 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/05 15:57:56 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,10 @@
 HttpHeader::HttpHeader( void ) : _sizeHeaders(9) // added for compilation
 {
 	short const size = getSizeHeaders();
-	std::string	headersKey[size] = {"Access-Control-Allow-Origin: ", "Connection: ",
+	std::string	headersKey[size] = {"DEFAULT", "Access-Control-Allow-Origin: ", "Connection: ",
 		"Content-Type: ", "Date: ", "Keep-Alive: ", "Location: ", "Transfer-Encoding: ",
 		"X-Content-Type-Options: ", "Content-Length: "};
-	std::string	headersValue[size] = {"*", std::string(), std::string(),
+	std::string	headersValue[size] = {"DEFAULT", "*", std::string(), std::string(),
 		std::string(), "timeout=5, max=997", std::string(), std::string(),
 		"nosniff", std::string()};
 	for (short i = 0; i < size; i++)
@@ -98,7 +98,7 @@ void	HttpHeader::setAcceptTypefiles( std::string const &acceptTypefiles )
 /*
 * Return need to be checked, pair can be empty.
 */
-std::pair<std::string, std::string>	const	HttpHeader::getPairFromHeaders(
+std::pair<std::string, std::string>	const	&HttpHeader::getPairFromHeaders(
 	std::string const &key ) const
 {
 	std::vector<std::pair<std::string, std::string> >::const_iterator	it;
@@ -107,7 +107,7 @@ std::pair<std::string, std::string>	const	HttpHeader::getPairFromHeaders(
 		if (it->first == key)
 			return (*it);
 	}
-	return (std::make_pair(std::string(), std::string()));
+	return (getHeaders()[0]);
 }
 
 std::vector<std::pair<std::string, std::string> > &HttpHeader::getHeaders( void )

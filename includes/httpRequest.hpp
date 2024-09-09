@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpRequest.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 10:31:13 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/05 11:16:53 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/06 15:07:04 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,8 +27,6 @@ class httpRequest
 		std::string	_version;
 		std::map<std::string, std::string> _headers;
 		std::string	_body;
-		bool		_haveBody;
-		size_t		_bodySize;
 
 		httpRequest( httpRequest const &copy );
 		httpRequest const &operator=( httpRequest const &copy );
@@ -51,8 +49,6 @@ class httpRequest
 		std::map<std::string, std::string>	&getHeaders( void );
 		std::map<std::string, std::string> const &getHeaders( void ) const;
 		std::string const	&getBody( void ) const;
-		bool const			&getHaveBody( void ) const;
-		size_t const		&getBodySize( void ) const;
 
 		/* Methods */
 		void	parseRequest( char *buffer, int const &size );

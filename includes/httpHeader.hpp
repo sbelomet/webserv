@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpHeader.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 10:33:55 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/05 11:09:24 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/05 15:56:38 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ class HttpHeader
 		std::string			_statusCode; // 200, 201, 404
 		std::string			_infoStatusCode; // Created, Forbidden, etc..
 		std::string			_acceptTypefiles;
-		short	_sizeHeaders;	// modified for compilation
+		static short const	_sizeHeaders = 10;
 		std::vector<std::pair<std::string, std::string> > _headers; // Date to do
 	public:
 		HttpHeader( void );

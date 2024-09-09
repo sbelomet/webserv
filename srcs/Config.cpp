@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:09 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/05 11:35:48 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/09 10:52:01 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,6 +173,14 @@ void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitPar
 				std::string location = line.substr(it - line.begin(), (loc_end - line.begin()) - (it - line.begin()));
 				it = loc_end;
 
+				// check if location value starts with a slash
+				if (location[0] != '/')
+				{
+					std::cerr << "ERROR on line " << lineCount << ": Location value must start with a slash" << std::endl;
+					throw Webserv::NoException();
+				}
+
+				// set location value and push location to locations vector
 				inLocation->setLocation(location);
 				if (location == "/")
 					_has_root_location = true;
@@ -498,7 +506,7 @@ void	Config::parseKeywordClientMaxBodySize( std::vector<std::string> const &valu
 	}
 	char *end;
 	errno = 0;
-	unsigned long maxClientBody = std::strtoul(values[0].c_str(), &end, 10);
+	size_t maxClientBody = std::strtoul(values[0].c_str(), &end, 10);
 	if (errno == ERANGE || *end != '\0' || maxClientBody == ULONG_MAX)
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Invalid client max body size" << std::endl;

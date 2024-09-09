@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 14:08:16 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/28 14:59:26 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/06 14:43:15 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ class Location
 		bool						_autoindex;
 		bool						_autoindex_set;
 		s_methods					_allowed_methods;
-		unsigned long				_client_max_body_size; // optional
+		size_t						_client_max_body_size;
 
 		Location( Location const &copy );
 		Location const &operator=( Location const &copy );
@@ -70,8 +70,8 @@ class Location
 		std::string const	&getIndex( void ) const;
 		std::string const	&getAlias( void ) const;
 		std::string const	&getLocation( void ) const;
+		size_t const	&getMaxClientBody( void ) const;
 		s_methods const	&getAllowedMethods( void ) const;
-		unsigned long const	&getMaxClientBody( void ) const;
 		std::vector<std::string> const	&getCgiPass( void ) const;
 
 		/* setters */
@@ -81,9 +81,9 @@ class Location
 		void	setAutoindexSet( bool const & );
 		void	setIndex( std::string const & );
 		void	setAlias( std::string const & );
+		void	setMaxClientBody( size_t const & );
 		void	setLocation( std::string const & );
 		void	setAllowedMethods( s_methods const & );
-		void	setMaxClientBody( unsigned long const & );
 		void	setCgiPass( std::vector<std::string> const & );
 
 		/* access methods for vector/struct */
@@ -93,6 +93,7 @@ class Location
 		void	switchRemove( void );
 		void	pushCgiPass( std::string const &cgiExt );
 		void	setPathFromReturn( std::string const &path );
+		bool	isAllowedMethod( std::string const &method );
 		void	setStatusFromReturn( std::string const &status );
 };
 
