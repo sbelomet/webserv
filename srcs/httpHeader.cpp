@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   httpHeader.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 13:38:03 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/05 15:57:56 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/10 10:45:57 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "httpHeader.hpp"
 
-HttpHeader::HttpHeader( void ) : _sizeHeaders(9) // added for compilation
+HttpHeader::HttpHeader( void ) : _sizeHeaders(10)
 {
 	short const size = getSizeHeaders();
 	std::string	headersKey[size] = {"DEFAULT", "Access-Control-Allow-Origin: ", "Connection: ",
@@ -95,9 +95,6 @@ void	HttpHeader::setAcceptTypefiles( std::string const &acceptTypefiles )
 	_acceptTypefiles = acceptTypefiles;
 }
 
-/*
-* Return need to be checked, pair can be empty.
-*/
 std::pair<std::string, std::string>	const	&HttpHeader::getPairFromHeaders(
 	std::string const &key ) const
 {
@@ -156,6 +153,10 @@ void	HttpHeader::updateStatus( short const &statusCode )
 		case 302:
 			setStatusCode("302");
 			setInfoStatusCode("Found");
+			break;
+		case 307:
+			setStatusCode("307");
+			setInfoStatusCode("Temporary Redirect");
 			break;
 		case 400:
 			setStatusCode("400");

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 11:36:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/28 15:40:17 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/10 15:38:34 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ void	Server::pushSocket( int const &socket )
 
 void	Server::insertServer( int const &index, Config *&config )
 {
-	_servers[index] = config;
+	_servers[getSockets()[index]] = config;
 }
 
 void	Server::pushServerAddr( sockaddr_in const &socket_address )

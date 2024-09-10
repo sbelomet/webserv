@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 14:08:16 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/06 14:43:15 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/10 10:28:16 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,7 @@ class Location
 		void	setLocation( std::string const & );
 		void	setAllowedMethods( s_methods const & );
 		void	setCgiPass( std::vector<std::string> const & );
+		void	setAllowedMethodsSet( bool const &allowedMethodsSet );
 
 		/* access methods for vector/struct */
 

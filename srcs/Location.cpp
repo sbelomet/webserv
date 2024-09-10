@@ -6,13 +6,13 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 14:09:46 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/09 13:39:42 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/10 10:29:48 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Location.hpp"
 
-Location::Location( void ) : _root(""), _index(""), _alias(""), _autoindex(false), _autoindex_set(false), _client_max_body_size(0)
+Location::Location( void ) : _root(""), _index(""), _alias(""), _autoindex(false), _autoindex_set(false), _client_max_body_size(1)
 {}
 
 Location::~Location( void )
@@ -132,6 +132,11 @@ void	Location::setLocation( std::string const &location )
 		_location = location.substr(0, location.size() - 1);
 	else
 		_location = location;
+}
+
+void	Location::setAllowedMethodsSet( bool const &allowedMethodsSet )
+{
+	_allowed_methods.var_set = allowedMethodsSet;
 }
 
 void	Location::setAllowedMethods( s_methods const &allowedMethods )

@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 10:28:01 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/03 13:36:51 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/10 13:59:53 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,6 +91,11 @@ void	MapConfig::mappingConfigs( std::string const &filepath )
 	std::ifstream   infile(filepath.c_str());
 	if (!infile.is_open())
 		throw (Webserv::FileException());
+	if (infile.peek() == std::ifstream::traits_type::eof())
+	{
+		std::cerr << "ERROR: Empty configuration file" << std::endl;
+		throw Webserv::NoException();
+	}
 
 	std::string	line;
 	int			lineCount = 0;
@@ -205,6 +210,72 @@ void	MapConfig::checkValidConfig( Config *config )
 	{
 		std::cerr << "ERROR: root location is missing" << std::endl;
 		throw Webserv::NoException();
+	}
+	fillLocations(config);
+}
+
+/**
+ * Fill in missing values in the location block if possible
+ */
+void	MapConfig::fillLocations( Config *config )
+{
+	std::vector<Location *> locations = config->getLocations();
+	Location *rootLocation = NULL;
+
+	for (std::vector<Location *>::iterator it = locations.begin(); it != locations.end(); it++)
+	{
+		if ((*it)->getLocation() == "/")
+		{
+			rootLocation = *it;
+			if (rootLocation->getMaxClientBody() == 1)
+				rootLocation->setMaxClientBody(config->getMaxClientBody());
+			break;
+		}
+	}
+	for (std::vector<Location *>::iterator it = locations.begin(); it != locations.end(); it++)
+	{
+		if ((*it)->getLocation() == "/")
+			continue;
+		if ((*it)->getRoot().empty())
+		{
+			if (!rootLocation->getRoot().empty())
+				(*it)->setRoot(rootLocation->getRoot());
+		}
+		if ((*it)->getIndex().empty())
+		{
+			if (!rootLocation->getIndex().empty())
+				(*it)->setIndex(rootLocation->getIndex());
+		}
+		if ((*it)->getAlias().empty())
+		{
+			if (!rootLocation->getAlias().empty())
+				(*it)->setAlias(rootLocation->getAlias());
+		}
+		if ((*it)->getAutoindexSet() == false)
+		{
+			if (rootLocation->getAutoindexSet() == true)
+				(*it)->setAutoindex(rootLocation->getAutoindex());
+		}
+		if ((*it)->getCgiPass().empty())
+		{
+			if (!rootLocation->getCgiPass().empty())
+				(*it)->setCgiPass(rootLocation->getCgiPass());
+		}
+		if ((*it)->getReturn().path.empty())
+		{
+			if (!rootLocation->getReturn().path.empty())
+				(*it)->setReturn(rootLocation->getReturn());
+		}
+		if ((*it)->getAllowedMethods().var_set == false)
+		{
+			if (rootLocation->getAllowedMethods().var_set == true)
+				(*it)->setAllowedMethods(rootLocation->getAllowedMethods());
+		}
+		if ((*it)->getMaxClientBody() == 1)
+		{
+			if (rootLocation->getMaxClientBody() != 1)
+				(*it)->setMaxClientBody(rootLocation->getMaxClientBody());
+		}
 	}
 }
 

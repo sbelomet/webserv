@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:14 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/06 15:06:47 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/09 13:41:46 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 # define CONFIG_HPP
 
 # include <map>
-# include <vector>
 # include <algorithm>
 # include <cstdlib>
 # include <cerrno>

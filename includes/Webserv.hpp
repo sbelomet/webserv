@@ -3,16 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   Webserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:12:17 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/06 15:02:26 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/09 14:30:21 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef WEBSERV_H
 # define WEBSERV_H
 
+# include <vector>
+# include <sstream> 
 # include <iostream>
 
 # define MAX_EVENTS 4096
@@ -25,12 +27,13 @@
 # define CYAN "\033[1;36m"
 # define RESET "\033[0m"
 
-/* LEXER UTILS */
+/* UTILS */
 
 bool isWhitespace(char c);
 bool isSeparatorNW(char c);
 bool isSeparator(char c);
 bool onlyWhitespaces(const std::string &str);
+std::vector<std::string>	vecSplit( std::string const &str, char delimiter );
 std::string::iterator findKeywordEnd(std::string::iterator it, std::string::iterator end);
 std::string::iterator findKeywordEnd(std::string::iterator it, std::string::const_iterator end);
 

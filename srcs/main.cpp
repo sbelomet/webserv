@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:11:54 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/08/28 15:37:35 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/10 14:02:52 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,6 @@ int main(int ac, char **av)
 		try
 		{
 			manager.makeAll(server, av[1]);
-			//std::cout << manager.getMapConfig() << std::endl;
 		}
 		catch (Webserv::NoException const &e)
 		{

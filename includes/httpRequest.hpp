@@ -6,16 +6,15 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 10:31:13 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/06 15:07:04 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/09 13:49:12 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HTTPREQUEST_HPP
 # define HTTPREQUEST_HPP
 
-# include <iostream>
-# include <algorithm>
 # include <map>
+# include <algorithm>
 # include "Webserv.hpp"
 
 class httpRequest

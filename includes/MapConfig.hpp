@@ -3,18 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   MapConfig.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 09:44:19 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/28 14:47:48 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/10 10:50:53 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MAPCONFIG_HPP
 # define MAPCONFIG_HPP
 
-# include <vector>
-# include <sstream>
 # include <fstream>
 # include "Server.hpp"
 # include "Config.hpp"
@@ -33,6 +31,7 @@ class MapConfig
 		MapConfig const &operator=( MapConfig const &copy );
 		
 		void	checkValidConfig( Config *config );
+		void	fillLocations( Config *config );
 		void	mappingConfigs( std::string const &filepath );
 	public:
 		MapConfig( void );

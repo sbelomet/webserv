@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   lexer_utils.cpp                                    :+:      :+:    :+:   */
+/*   utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/21 10:32:48 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/08/29 12:43:13 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/10 09:51:58 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,4 +67,22 @@ std::string::iterator findKeywordEnd(std::string::iterator it, std::string::cons
 	while (it != end && !isSeparator(*it))
 		it++;
 	return it;
+}
+
+/**
+ * Split a string into a vector of strings using a delimiter
+ */
+std::vector<std::string>	vecSplit( std::string const &str, char delimiter )
+{
+	std::string					word;
+	std::vector<std::string>	words;
+	std::stringstream			ss(str);
+
+	while (!ss.eof())
+	{
+		std::getline(ss, word, delimiter);
+		if (!word.empty())
+			words.push_back(word);
+	}
+	return (words);
 }

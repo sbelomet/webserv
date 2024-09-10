@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 11:35:54 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/28 15:36:46 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/09 13:41:40 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 # define SERVER_HPP
 
 # include <map>
-# include <vector>
 # include <cstdlib>
 # include <fcntl.h>
 # include "Webserv.hpp"

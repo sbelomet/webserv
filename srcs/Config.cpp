@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:09 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/09 10:52:01 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/10 15:21:31 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,12 +50,12 @@ Config const    &Config::operator=( Config const &copy )
 std::string const	&Config::getRoot( void ) const { return (_root); }
 std::string const	&Config::getHost( void ) const { return (_host); }
 std::string const	&Config::getIndex( void ) const { return (_index); }
-bool const	&Config::getHasRootLocation( void ) const {return (_has_root_location); }
-unsigned long const	&Config::getMaxClientBody( void ) const {return (_client_max_body_size); }
-std::vector<Location *> const	&Config::getLocations( void ) const {return (_locations); }
-std::vector<std::string> const	&Config::getListen( void ) const {return (_listen); }
-std::vector<std::string> const	&Config::getServerName( void ) const {return (_server_name); }
-std::map<short, std::string> const	&Config::getErrorPages( void ) const {return (_error_pages); }
+bool const	&Config::getHasRootLocation( void ) const { return (_has_root_location); }
+unsigned long const	&Config::getMaxClientBody( void ) const { return (_client_max_body_size); }
+std::vector<Location *> const	&Config::getLocations( void ) const { return (_locations); }
+std::vector<std::string> const	&Config::getListen( void ) const { return (_listen); }
+std::vector<std::string> const	&Config::getServerName( void ) const { return (_server_name); }
+std::map<short, std::string> const	&Config::getErrorPages( void ) const { return (_error_pages); }
 
 /*  */
 
@@ -76,6 +76,33 @@ void	Config::pushServerName( std::string const &serverName ) { _server_name.push
 void	Config::insertErrorPage( short const &num, std::string const &file ) { _error_pages[num] = file; }
 
 /*  */
+
+Location	*Config::getSingleLocation( std::string const &path )
+{
+	std::string					remainder("/");
+	Location					*currLocation = NULL;
+	std::vector<std::string>	words = vecSplit(path, '/');
+
+	if (words.empty())
+		words.push_back("");
+	for (size_t i = 0; i < words.size(); i++)
+	{
+		if (i == 0)
+			remainder += words[i];
+		else
+			remainder += "/" + words[i];
+
+		for (std::vector<Location *>::iterator it = _locations.begin(); it != _locations.end(); it++)
+		{
+			if ((*it)->getLocation() == remainder)
+			{
+				currLocation = *it;
+				break;
+			}
+		}
+	}
+	return (currLocation);
+}
 
 void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitParenth )
 {
@@ -609,6 +636,7 @@ void	Config::parseKeywordAllowedMethods( std::vector<std::string> const &values,
 			std::cerr << "ERROR on line " << lineCount << ": Duplicate allowed methods forbidden" << std::endl;
 			throw Webserv::NoException();
 		}
+		location->setAllowedMethodsSet(true);
 		if (values[i] == "GET")
 			location->switchGet();
 		if (values[i] == "POST")

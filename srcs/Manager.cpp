@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 13:34:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/09 13:58:18 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/10 15:47:17 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,10 +143,10 @@ void	Manager::manageResponse( Server &server, httpRequest const &request,
 		response.getHeader().updateStatus(404);
 	Location	*location = response.getConfig()->getSingleLocation(response.getPath());
 	if (location == NULL)
-		throw (Webserv::NoException());
+		response.getHeader().updateStatus(404);
 	if (!location->isAllowedMethod(response.getMethod()))
 		response.getHeader().updateStatus(405);
-	if (response.checkPathRedir(location, response.getConfig()->getSingleLocation("/")) == 1)
+	if (response.checkPathRedir(location) == 1)
 		response.getHeader().updateStatus(404);
 	if (!request.getBody().empty())
 	{
@@ -198,7 +198,7 @@ void	Manager::readRequest( Server &server, int const &fd )
 	}
 	buff[read_bytes] = '\0';
 	request.parseRequest(buff, read_bytes);
-	manageResponse(server, request, server.getIndexSocketFromNewConnections(fd));
+	//manageResponse(server, request, server.getIndexSocketFromNewConnections(fd));
 	//int const		socketIndex = server.getIndexSocketFromNewConnections(fd);
 	//if (request.getStatusCode() == 400)
 	//{
@@ -210,14 +210,18 @@ void	Manager::readRequest( Server &server, int const &fd )
 	//std::cout << request << std::endl;
 	//send(fd, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!", 74, 0);
 	//close(fd);
+	Config *a = server.getConfigFromServer(server.getIndexSocketFromNewConnections(fd));
 	CGI cgi;
-	cgi.fillEnv("cgi-bin/hello.py");
+	cgi.fillEnv("cgi-bin/hello.py", a->getSingleLocation("/cgi-bin"));
+	// check status code
 	cgi.executeCGI(fd);
+	// check status code
 }
 
 void	Manager::makeAll( Server &server, std::string const &filepath )
 {
 	getMapConfig().makeAll(server, filepath);
+	std::cout << _map_config << std::endl;
 	epollStarting(server);
 	while (epollWaiting(server) != false)
 		;
