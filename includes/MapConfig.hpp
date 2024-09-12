@@ -3,17 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   MapConfig.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 09:44:19 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/10 10:50:53 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/10 15:57:24 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MAPCONFIG_HPP
 # define MAPCONFIG_HPP
 
-# include <fstream>
 # include "Server.hpp"
 # include "Config.hpp"
 # include "Webserv.hpp"

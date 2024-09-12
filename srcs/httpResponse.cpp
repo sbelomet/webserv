@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:36 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/10 10:42:22 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/11 10:00:54 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,8 +197,79 @@ int	HttpResponse::checkPathRedir( Location *location )
 	return 0;
 }
 
-void	HttpResponse::buildResponsePath( HttpResponse &response, Location *location )
+std::string const	HttpResponse::checkPathForDelete( Location *location )
 {
+	int	fd;
+	std::string	path = getPath();
+
+	if (isDirectory(path))
+	{
+		if (path == "/")
+			return ("/" + getConfig()->getIndex());
+		else if (!location->getIndex().empty())
+			return (path + "/" + location->getIndex());
+		else if (!getAutoindex())
+		{
+			getHeader().updateStatus(403);
+			return (std::string());
+		}
+	}
+	if ((fd = open(path.c_str(), O_RDWR)) == -1) // absolute path?
+	{
+		getHeader().updateStatus(404);
+		close(fd);
+		return (std::string());
+	}
+	close(fd);
+	return (std::string());
+}
+
+static	std::string	formatRoot( std::string root )
+{
+	if (root == "./")
+		return (".");
+	if (root[0] == '.' || root[0] == '/')
+	{
+		if (root[0] == '.' && root[1] == '/')
+			root.erase(0, 2);
+		else if (root[0] == '/')
+			root.erase(0, 1);
+	}
+	if (root[(root.size() - 1)] == '/')
+		root.erase((root.size() - 1), 1);
+	root = "./" + root;
+	return (root);
+}
+
+std::string	const	HttpResponse::concatenateRoot( Location *location,
+	std::string const &path )
+{
+	std::string	root;
+	if (location->getRoot().empty())
+		root = getConfig()->getRoot();
+	else
+		root = location->getRoot();
+	root = formatRoot(root);
+	if (root == ".")
+		return (root + path);
+	if (path == "/")
+		return (root);
+	if (path != "/")
+	{
+		if (root.find_last_of('/') == (root.size() - 1))
+			root = root + path;
+		else
+			root = root + "/" + path;
+		if (!(root[0] == '.' && root[1] == '/'))
+			root = "./" + root;
+		return (root);
+	}
+	return (root);
+}
+
+void	HttpResponse::buildResponsePath( Location *location )
+{
+	//std::string const	completePath = concatenateRoot(location, response.getPath());
 	if (getToRedir())
 	{
 		if (!location->getReturn().path.empty())
@@ -208,15 +279,27 @@ void	HttpResponse::buildResponsePath( HttpResponse &response, Location *location
 		getHeader().updateStatus(301);
 		return ;
 	}
+	if (getMethod() == "DELETE")
+	{
+		std::string const newPath = checkPathForDelete(location);
+		if (!newPath.empty())
+		{
+			std::string const	toDel = concatenateRoot(location, getPath());
+			std::remove(toDel.c_str());
+			// the new path is delete.html
+		}
+		if (!newPath.empty() && getHeader().getStatusCode() == "403")
+			return ;
+		else
+		{
+			getHeader().updateStatus(204);
+			return ;
+		}
+	}
 	if (getAutoindex())
 	{
 
 	}
-	if (getMethod() == "DELETE" )
-	{
-		// check complete path and open file to test
-	}
-	(void)response;
 }
 
 /**

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Webserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:12:17 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/09 14:30:21 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/11 13:48:32 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include <vector>
 # include <sstream> 
 # include <iostream>
+# include <sys/stat.h>
 
 # define MAX_EVENTS 4096
 # define BUFFER_SIZE 50000
@@ -29,10 +30,13 @@
 
 /* UTILS */
 
-bool isWhitespace(char c);
-bool isSeparatorNW(char c);
-bool isSeparator(char c);
-bool onlyWhitespaces(const std::string &str);
+bool	isSeparator(char c);
+bool	isWhitespace(char c);
+bool	isSeparatorNW(char c);
+void	strtolower(std::string &str);
+bool	isDirectory( std::string path );
+bool	isRegularFile( std::string path );
+bool	onlyWhitespaces(const std::string &str);
 std::vector<std::string>	vecSplit( std::string const &str, char delimiter );
 std::string::iterator findKeywordEnd(std::string::iterator it, std::string::iterator end);
 std::string::iterator findKeywordEnd(std::string::iterator it, std::string::const_iterator end);

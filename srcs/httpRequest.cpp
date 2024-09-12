@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 10:31:17 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/09 14:09:05 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/11 13:48:10 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,6 +98,11 @@ int	httpRequest::checkPath( std::string::iterator &it, std::string::iterator req
 		_status_code = 404;
 		return 1;
 	}
+	if (tmp.find("?") != std::string::npos)
+	{
+		_status_code = 501;
+		return 1;
+	}
 	_path = tmp;
 	it = end + 1;
 	return 0;
@@ -139,6 +144,7 @@ int	httpRequest::fillHeaders( std::string::iterator &it, std::string::iterator r
 			return 1;
 		}
 		std::string key(it, colon);
+		strtolower(key);
 		std::string value(colon + 2, end);
 		_headers[key] = value;
 		it = end + 2;

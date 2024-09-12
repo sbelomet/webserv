@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/21 10:32:48 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/10 09:51:58 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/11 13:51:34 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,4 +85,44 @@ std::vector<std::string>	vecSplit( std::string const &str, char delimiter )
 			words.push_back(word);
 	}
 	return (words);
+}
+
+static std::string const	checkAbsolute( std::string const &path )
+{
+	if (path[0] == '.' && path[1] == '/')
+		return (path);
+	std::string const newPath = "./" + path;
+	return (newPath);
+}
+
+bool	isDirectory( std::string path )
+{
+	struct stat	info;
+
+	path = checkAbsolute(path);
+	if (stat(path.c_str(), &info) != 0 || !(info.st_mode & S_IFDIR))
+		return (false);
+	return (true);
+}
+
+bool	isRegularFile( std::string path )
+{
+	struct stat	info;
+
+	path = checkAbsolute(path);
+	if (stat(path.c_str(), &info) != 0 || !(info.st_mode & S_IFREG))
+		return (false);
+	return (true);
+}
+
+/**
+ * Convert a string to lowercase (check if it's a letter before converting)
+ */
+void	strtolower(std::string &str)
+{
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		if (str[i] >= 'A' && str[i] <= 'Z')
+			str[i] = std::tolower(str[i]);
+	}
 }

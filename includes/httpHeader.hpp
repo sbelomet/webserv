@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 10:33:55 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/10 10:45:46 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/11 09:58:05 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,12 +22,13 @@ class Config;
 class HttpHeader
 {
 	private:
-		short				_sizeHeaders;
 		std::string			_protocol;
 		std::string			_firstLine;
 		std::string			_statusCode; // 200, 201, 404
+		short				_sizeHeaders;
 		std::string			_infoStatusCode; // Created, Forbidden, etc..
 		std::string			_acceptTypefiles;
+
 		std::vector<std::pair<std::string, std::string> > _headers; // Date to do
 	public:
 		HttpHeader( void );

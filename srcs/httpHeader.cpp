@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   httpHeader.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 13:38:03 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/10 10:45:57 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/10 15:57:38 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "httpHeader.hpp"
 
-HttpHeader::HttpHeader( void ) : _sizeHeaders(10)
+HttpHeader::HttpHeader( void ): _sizeHeaders(10)
 {
 	short const size = getSizeHeaders();
 	std::string	headersKey[size] = {"DEFAULT", "Access-Control-Allow-Origin: ", "Connection: ",
@@ -197,4 +197,5 @@ void	HttpHeader::updateStatus( short const &statusCode )
 		default:
 			break;
 	}
+	return ;
 }

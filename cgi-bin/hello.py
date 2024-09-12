@@ -1,18 +1,19 @@
 print("HTTP/1.1 200 OK")
 print("Content-type: text/html")
-print("Content-length: 190")
+print("Content-length: 88")
 print()
 
 print("<!DOCTYPE html>")
 print("<html>")
 
 print("<head>")
-print('<meta charset="UTF-8">')
-print('<meta name="viewport" content="width=device-width, initial-scale=1.0">')
 print("<title>Hello</title>")
 print("</head>")
 
 print("<body>")
 print("<h2>Hello</h2>")
+#print('<form action="../cgi-bin/print_env.py" method="get">')
+#print('  <button type="submit">Submit</button>')
+#print('</form>')
 print("</body>")
 print("</html>")

@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 13:34:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/10 15:47:17 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/11 15:55:24 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,21 +133,17 @@ void	Manager::epollStarting( Server &server )
 }
 
 void	Manager::manageResponse( Server &server, httpRequest const &request,
-	int const &socketIndex )
+	HttpResponse &response )
 {
-	HttpResponse	response(server.getConfigFromServer(socketIndex), request);
-
-	if (response.getRequestStatusCode() == 400)
-		response.getHeader().updateStatus(400);
-	if (response.getRequestStatusCode() == 404)
-		response.getHeader().updateStatus(404);
+	if (response.getRequestStatusCode() == 400 || response.getRequestStatusCode() == 404)
+		return (response.getHeader().updateStatus(response.getRequestStatusCode()));
 	Location	*location = response.getConfig()->getSingleLocation(response.getPath());
 	if (location == NULL)
-		response.getHeader().updateStatus(404);
+		return (response.getHeader().updateStatus(404));
 	if (!location->isAllowedMethod(response.getMethod()))
-		response.getHeader().updateStatus(405);
+		return (response.getHeader().updateStatus(405));
 	if (response.checkPathRedir(location) == 1)
-		response.getHeader().updateStatus(404);
+		return (response.getHeader().updateStatus(404));
 	if (!request.getBody().empty())
 	{
 		size_t	clientMaxBodySize = location->getMaxClientBody();
@@ -158,19 +154,32 @@ void	Manager::manageResponse( Server &server, httpRequest const &request,
 		clientMaxBodySize = clientMaxBodySize * 1024;
 		size_t const	bodysize = request.getBody().size();
 		if (bodysize > clientMaxBodySize)
-			response.getHeader().updateStatus(413);
+			return (response.getHeader().updateStatus(413));
 		response.setMaxClientBodySize(clientMaxBodySize);
 	}
 	Mime	mime;
 	std::string extension = response.extractPathExtension(response.getPath());
 	std::string	mimeType = mime.getMimeType(extension);
 	response.getHeader().modifyValuePair("Content-Type", mimeType);
-	
-	// set mime types
+
 	// build url and check other things
 	// check and send response error
 	// send response
 	// check reponse status
+	(void)server;
+}
+
+void	Manager::waitingForResponse( Server &server, httpRequest const &request,
+	int const &socketIndex )
+{
+	HttpResponse	response(server.getConfigFromServer(socketIndex), request);
+
+	manageResponse(server, request, response);
+	std::string const	statusCode = response.getHeader().getStatusCode();
+	if (statusCode != "200")
+	{} // set content type
+	else
+	{} // content type already set
 }
 
 /**
@@ -198,18 +207,10 @@ void	Manager::readRequest( Server &server, int const &fd )
 	}
 	buff[read_bytes] = '\0';
 	request.parseRequest(buff, read_bytes);
-	//manageResponse(server, request, server.getIndexSocketFromNewConnections(fd));
+	std::cout << request << std::endl;
+	waitingForResponse(server, request, server.getIndexSocketFromNewConnections(fd));
 	//int const		socketIndex = server.getIndexSocketFromNewConnections(fd);
-	//if (request.getStatusCode() == 400)
-	//{
-	//	std::cout << "Bad request" << std::endl;
-	//	epoll_ctl(server.getEpollFd(), EPOLL_CTL_DEL, fd, NULL);
-	//	close(fd);
-	//	return ;
-	//}
-	//std::cout << request << std::endl;
-	//send(fd, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!", 74, 0);
-	//close(fd);
+
 	Config *a = server.getConfigFromServer(server.getIndexSocketFromNewConnections(fd));
 	CGI cgi;
 	cgi.fillEnv("cgi-bin/hello.py", a->getSingleLocation("/cgi-bin"));
@@ -221,8 +222,17 @@ void	Manager::readRequest( Server &server, int const &fd )
 void	Manager::makeAll( Server &server, std::string const &filepath )
 {
 	getMapConfig().makeAll(server, filepath);
-	std::cout << _map_config << std::endl;
+	//std::cout << _map_config << std::endl;
 	epollStarting(server);
 	while (epollWaiting(server) != false)
 		;
 }
+
+/**
+ * POST:
+ * 1. check content-length and max body size
+ * 2. check content-type (multipart/form-data and boundary)
+ * 3. put body in a file
+ * 4. send file to cgi
+ * 
+*/

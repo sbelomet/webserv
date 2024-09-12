@@ -3,23 +3,23 @@
 /*                                                        :::      ::::::::   */
 /*   Manager.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 12:46:56 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/06 15:21:45 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/10 12:27:19 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MANAGER_HPP
 # define MANAGER_HPP
 
+# include "CGI.hpp"
 # include "unistd.h"
 # include "Server.hpp"
 # include "Webserv.hpp"
 # include <sys/epoll.h>
 # include "httpRequest.hpp"
 # include "httpResponse.hpp"
-# include "CGI.hpp"
 
 class Server;
 
@@ -35,8 +35,10 @@ class Manager
 		void	epollStarting( Server &server );
 		void	readRequest( Server &server, int const &fd );
 		bool	acceptConnection( Server &server, int const &index );
-		void	manageResponse( Server &server, httpRequest const &request,
+		void	waitingForResponse( Server &server, httpRequest const &request,
 			int const &socketIndex );
+		void	manageResponse( Server &server, httpRequest const &request,
+			HttpResponse &response );
 	public:
 		Manager();
 		~Manager();

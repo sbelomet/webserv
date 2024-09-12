@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 10:43:35 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/10 15:41:57 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/11 10:07:54 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,6 @@ std::string	CGI::getBinary(std::string const &script)
  */
 void CGI::fillEnv(std::string const &script, Location const *cgiLocation)
 {
-	std::cout << cgiLocation->getCgiPass().size() << std::endl;
 	if (cgiLocation == NULL)
 	{
 		_env["STATUS_CODE"] = "404";
@@ -94,7 +93,6 @@ void CGI::fillEnv(std::string const &script, Location const *cgiLocation)
 	}
 	
 	fillBinaries(cgiLocation->getCgiPass());
-	std::cout << "BINARIES" << std::endl;
 	
 	_env["i dont know"] = "what to put here";
 	_env["so here"] = "is a random env variable";

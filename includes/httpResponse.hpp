@@ -6,15 +6,17 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:20 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/10 10:36:01 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/11 10:00:21 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HTTPRESPONSE_HPP
 # define HTTPRESPONSE_HPP
 
+# include <fcntl.h>
 # include "Mime.hpp"
 # include <iostream>
+# include <unistd.h>
 # include "Config.hpp"
 # include "httpHeader.hpp"
 # include "httpRequest.hpp"
@@ -86,10 +88,14 @@ class HttpResponse
 
 		/* methods */
 
-		void	updateHeader( short const &statusCode );
-		int		checkPathRedir( Location *location );
-		void	buildResponsePath( HttpResponse &response, Location *location );
+		void		updateHeader( short const &statusCode );
+		void		buildResponsePath( Location *location );
+		std::string	const	concatenateRoot( Location *location,
+			std::string const &path );
 		std::string	extractPathExtension( std::string const &path );
+		std::string const	checkPathForDelete( Location *location );
+		int			checkPathRedir( Location *location );
+
 };
 
 #endif
