@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/21 10:32:48 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/11 13:51:34 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/11 16:02:19 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,32 +87,50 @@ std::vector<std::string>	vecSplit( std::string const &str, char delimiter )
 	return (words);
 }
 
-static std::string const	checkAbsolute( std::string const &path )
-{
-	if (path[0] == '.' && path[1] == '/')
-		return (path);
-	std::string const newPath = "./" + path;
-	return (newPath);
-}
-
-bool	isDirectory( std::string path )
+bool	isDirectory( std::string const &path )
 {
 	struct stat	info;
 
-	path = checkAbsolute(path);
 	if (stat(path.c_str(), &info) != 0 || !(info.st_mode & S_IFDIR))
 		return (false);
 	return (true);
 }
 
-bool	isRegularFile( std::string path )
+bool	isRegularFile( std::string const &path )
 {
 	struct stat	info;
 
-	path = checkAbsolute(path);
 	if (stat(path.c_str(), &info) != 0 || !(info.st_mode & S_IFREG))
 		return (false);
 	return (true);
+}
+
+size_t	fileSize( int const fd)
+{
+	struct stat	info;
+
+	fstat(fd, &info);
+	return (info.st_size);	
+}
+
+size_t	fileSize( std::string const &file )
+{
+	struct stat	info;
+
+	stat(file.c_str(), &info);
+	return (info.st_size);
+}
+
+/**
+ * Extracts the extension of a file from a path, returns "default" if no extension is found
+*/
+std::string	extractPathExtension( std::string const &path )
+{
+	size_t	dot = path.find_last_of('.');
+	if (dot != std::string::npos && dot + 1 < path.size())
+		return path.substr(dot + 1);
+	else
+		return "default";
 }
 
 /**

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:36 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/11 10:00:54 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/11 16:01:39 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,14 +36,14 @@ HttpResponse const	&HttpResponse::operator=( HttpResponse const &copy )
 HttpResponse::HttpResponse( Config *&config, httpRequest const &request ):
     _header(HttpHeader()), _config(config), _fd(-1), _isOk(true), _host(std::string()),
 	_path(request.getPath()), _method(request.getMethod()), _toRedir(false),
-	_mimeType("text/html"), _autoindex(false), _requestStatusCode(request.getStatusCode()),
-	_maxClientBodySize(1024 * 1024)
+	_filePath(std::string()), _mimeType("text/html"), _bodySize(0), _autoindex(false),
+	_requestStatusCode(request.getStatusCode()), _maxClientBodySize(1024 * 1024)
 {
     getHeader().setProtocol(request.getVersion());
 	std::map<std::string, std::string>	headers = request.getHeaders();
-	setHost(headers["Host"]);
-	getHeader().setAcceptTypefiles(headers["Accept"]);
-	getHeader().modifyValuePair("Connection", headers["Connection"]);
+	setHost(headers["host"]);
+	getHeader().setAcceptTypefiles(headers["accept"]);
+	getHeader().modifyValuePair("Connection", headers["connection"]);
 	getHeader().updateStatus(request.getStatusCode());
 }
 
@@ -77,6 +77,11 @@ bool const &HttpResponse::getToRedir( void ) const
 bool const &HttpResponse::getAutoindex( void ) const
 {
 	return (_autoindex);
+}
+
+size_t const &HttpResponse::getBodysize( void ) const
+{
+	return (_bodySize);
 }
 
 Config * const &HttpResponse::getConfig( void ) const
@@ -124,6 +129,11 @@ void	HttpResponse::setConfig( Config * const &config )
 	_config = config;
 }
 
+std::string const &HttpResponse::getFilePath( void ) const
+{
+	return (_filePath);
+}
+
 std::string const &HttpResponse::getMimeType( void ) const
 {
 	return (_mimeType);
@@ -132,6 +142,11 @@ std::string const &HttpResponse::getMimeType( void ) const
 void	HttpResponse::setHeader( HttpHeader const &header )
 {
 	_header = header;
+}
+
+void	HttpResponse::setBodysize( size_t const &bodySize )
+{
+	_bodySize = bodySize;
 }
 
 void	HttpResponse::setAutoindex( bool const &autoindex )
@@ -159,6 +174,11 @@ void	HttpResponse::setMimeType( std::string const &mimeType )
 	_mimeType = mimeType;
 }
 
+void	HttpResponse::setFilePath( std::string const &filePath )
+{
+	_filePath = filePath;
+}
+
 void	HttpResponse::setRequestStatusCode( short const &requestStatusCode )
 {
 	_requestStatusCode = requestStatusCode;
@@ -174,54 +194,50 @@ void	HttpResponse::setMaxClientBodySize( size_t const &maxClientBodySize )
 */
 int	HttpResponse::checkPathRedir( Location *location )
 {
-	if (_path.find_last_of('.') == std::string::npos
-		|| _path.find_last_of('/') < _path.find_last_of('.'))
+	if (isDirectory(getPath()))
 	{
 		if (!location->getIndex().empty())
-		{
-			_toRedir = true;
-		}
-		else if (!location->getIndex().empty())
-		{
-			_toRedir = true;
-		}
+			return (0);
 		else if (!location->getReturn().path.empty())
-		{
-			_toRedir = true;
-		}
+			setToRedir(true);
 		else if (location->getAutoindexSet())
-			_autoindex = location->getAutoindex();
+			setAutoindex(location->getAutoindex());
 		else
-			return 1;
+			return (1);
 	}
-	return 0;
+	return (0);
 }
 
-std::string const	HttpResponse::checkPathForDelete( Location *location )
+bool	HttpResponse::checkPath( Location *location,
+	std::string const &rootPath )
 {
 	int	fd;
-	std::string	path = getPath();
-
-	if (isDirectory(path))
+	if (isDirectory(rootPath))
 	{
-		if (path == "/")
-			return ("/" + getConfig()->getIndex());
+		if (getPath() == "/")
+		{
+			setFilePath(rootPath + "/" + getConfig()->getIndex());
+			return (true);
+		}
 		else if (!location->getIndex().empty())
-			return (path + "/" + location->getIndex());
+		{
+			setFilePath(rootPath + "/" + location->getIndex());
+			return (true);
+		}
 		else if (!getAutoindex())
 		{
 			getHeader().updateStatus(403);
-			return (std::string());
+			return (false);
 		}
 	}
-	if ((fd = open(path.c_str(), O_RDWR)) == -1) // absolute path?
+	if ((fd = open(rootPath.c_str(), O_RDWR)) == -1)
 	{
 		getHeader().updateStatus(404);
 		close(fd);
-		return (std::string());
+		return (false);
 	}
 	close(fd);
-	return (std::string());
+	return (true);
 }
 
 static	std::string	formatRoot( std::string root )
@@ -255,21 +271,12 @@ std::string	const	HttpResponse::concatenateRoot( Location *location,
 	if (path == "/")
 		return (root);
 	if (path != "/")
-	{
-		if (root.find_last_of('/') == (root.size() - 1))
-			root = root + path;
-		else
-			root = root + "/" + path;
-		if (!(root[0] == '.' && root[1] == '/'))
-			root = "./" + root;
-		return (root);
-	}
+		return (root + path);
 	return (root);
 }
 
-void	HttpResponse::buildResponsePath( Location *location )
+bool	HttpResponse::treatResponsePath( Location *location )
 {
-	//std::string const	completePath = concatenateRoot(location, response.getPath());
 	if (getToRedir())
 	{
 		if (!location->getReturn().path.empty())
@@ -277,49 +284,46 @@ void	HttpResponse::buildResponsePath( Location *location )
 		else
 			getHeader().modifyValuePair("Location", location->getIndex());
 		getHeader().updateStatus(301);
-		return ;
+		return (true);
 	}
-	if (getMethod() == "DELETE")
-	{
-		std::string const newPath = checkPathForDelete(location);
-		if (!newPath.empty())
-		{
-			std::string const	toDel = concatenateRoot(location, getPath());
-			std::remove(toDel.c_str());
-			// the new path is delete.html
-		}
-		if (!newPath.empty() && getHeader().getStatusCode() == "403")
-			return ;
-		else
-		{
-			getHeader().updateStatus(204);
-			return ;
-		}
+	if (!checkPath(location,
+		concatenateRoot(location, getPath())))
+		return (false);
+	if (getMethod() == "DELETE" && !getFilePath().empty())
+	{	
+		std::remove(getPath().c_str());
+		setPath("/deleted.html");
+		setFilePath("./public/deleted.html");
+		return (true);
 	}
-	if (getAutoindex())
-	{
-
-	}
+	// get?
+	// Post?
+	return (true);
 }
 
-/**
- * Extracts the extension of a file from a path, returns "default" if no extension is found
-*/
-std::string	HttpResponse::extractPathExtension( std::string const &path )
+bool	HttpResponse::sendHeader( void )
 {
-	size_t	dot = path.find_last_of('.');
-	if (dot != std::string::npos && dot + 1 < path.size())
-		return path.substr(dot + 1);
-	else
-		return "default";
+	std::string const	toSend = getHeader().composeHeader();
+	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
+	{
+		perror("send()");
+		return (false);
+	}
+	return (true);
 }
 
-void	HttpResponse::updateHeader( short const &statusCode )
+void	HttpResponse::updateHeader( void )
 {
 	HttpHeader	header = getHeader();
-	if (statusCode != 200)
+	if (header.getStatusCode() != "200")
 		header.modifyValuePair("Connection", "close");
 	else
 		header.modifyValuePair("Connection", "keep-alive");
-	// TO DO
+	header.buildFirstLine();
+	if (getBodysize() != 0)
+	{
+		std::stringstream	ss;
+		ss << getBodysize();
+		header.modifyValuePair("Content-Length", ss.str());
+	}
 }

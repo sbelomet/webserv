@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 10:28:01 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/10 13:59:53 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/12 13:36:25 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -294,9 +294,7 @@ std::ostream &operator<<(std::ostream &out, MapConfig &obj)
 		std::map<short, std::string> error_pages = obj.getConfigFromMap(it->first)->getErrorPages();
 		for (std::map<short, std::string>::iterator it = error_pages.begin(); it != error_pages.end(); it++)
 			out << RED << "  error_pages: " << RESET << it->first << " " << it->second << std::endl;
-		std::vector<std::string> listen = obj.getConfigFromMap(it->first)->getListen();
-		for (std::vector<std::string>::iterator it = listen.begin(); it != listen.end(); it++)
-			out << RED << "  listen: " << RESET << *it << std::endl;
+		out << RED << "  listen: " << RESET << obj.getConfigFromMap(it->first)->getListen() << std::endl;
 		std::vector<Location *> locations = obj.getConfigFromMap(it->first)->getLocations();
 		for (std::vector<Location *>::iterator it = locations.begin(); it != locations.end(); it++)
 		{

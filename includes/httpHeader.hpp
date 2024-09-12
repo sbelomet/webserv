@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 10:33:55 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/11 09:58:05 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/12 11:11:15 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 # include <iostream>
 # include "Config.hpp"
+# include <sys/socket.h>
 # include "httpRequest.hpp"
 
 class Config;
@@ -44,6 +45,9 @@ class HttpHeader
 		std::string const &getProtocol( void ) const;
 		void	setProtocol( std::string const &protocol );
 
+		std::string const &getFirstLine( void ) const;
+		void	setFirstLine( std::string const &firstLine );
+
 		std::string const &getStatusCode( void ) const;
 		void	setStatusCode( std::string const &statusCode );
 
@@ -62,6 +66,8 @@ class HttpHeader
 
 		/* methods  */
 
+		void	buildFirstLine( void );
+		std::string const	composeHeader( void );
 		void	updateStatus( short const &statusCode );
 };
 

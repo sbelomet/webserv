@@ -6,8 +6,8 @@ import os
 
 # Set the upload directory
 UPLOAD_DIR = "../uploads"
-if not os.path.exists(UPLOAD_DIR):
-	os.makedirs(UPLOAD_DIR)
+#if not os.path.exists(UPLOAD_DIR):
+#	os.makedirs(UPLOAD_DIR)
 
 # Create the form object
 form = cgi.FieldStorage()

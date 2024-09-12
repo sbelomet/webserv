@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpResponse.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:20 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/11 10:00:21 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/11 16:00:31 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # include <iostream>
 # include <unistd.h>
 # include "Config.hpp"
+
 # include "httpHeader.hpp"
 # include "httpRequest.hpp"
 
@@ -35,8 +36,10 @@ class HttpResponse
 		std::string	_host;
 		std::string	_path; // ex. -> /index.html
 		std::string	_method; // GET or POST or DELETE
-		bool		_toRedir; // if location have a return 
+		bool		_toRedir; // if location have a return
+		std::string	_filePath; // path with root for checking and opening
 		std::string	_mimeType; // ex. -> text/html, image/jpeg
+		size_t		_bodySize; // size of body response
 		bool		_autoindex; // listing or not directories
 		short		_requestStatusCode; // status code of request at parsing
 		size_t		_maxClientBodySize; // max size body for response
@@ -70,6 +73,9 @@ class HttpResponse
 		bool const &getAutoindex( void ) const;
 		void	setAutoindex( bool const &autoindex );
 
+		size_t const &getBodysize( void ) const;
+		void	setBodysize( size_t const &bodySize );
+
 		HttpHeader &getHeader( void );
 		HttpHeader const &getHeader( void ) const;
 		void	setHeader( HttpHeader const &header );
@@ -80,6 +86,9 @@ class HttpResponse
 		std::string const &getMimeType( void ) const;
 		void	setMimeType( std::string const &mimeType );
 
+		std::string const &getFilePath( void ) const;
+		void	setFilePath( std::string const &filePath );
+
 		short const &getRequestStatusCode( void ) const;
 		void	setRequestStatusCode( short const &requestStatusCode );
 
@@ -87,15 +96,14 @@ class HttpResponse
 		void	setMaxClientBodySize( size_t const &requestStatusCode );
 
 		/* methods */
-
-		void		updateHeader( short const &statusCode );
-		void		buildResponsePath( Location *location );
+		bool	sendHeader( void );
+		void	updateHeader( void );
+		int		checkPathRedir( Location *location );
+		bool	checkPath( Location *location,
+			std::string const &rootPath );
+		bool	treatResponsePath( Location *location );
 		std::string	const	concatenateRoot( Location *location,
 			std::string const &path );
-		std::string	extractPathExtension( std::string const &path );
-		std::string const	checkPathForDelete( Location *location );
-		int			checkPathRedir( Location *location );
-
 };
 
 #endif

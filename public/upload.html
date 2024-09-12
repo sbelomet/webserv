@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Upload</title>
+	<style>
+		.rec_center {
+			width: 60%;
+			margin: auto;
+			background: #edc7b8;
+			border-radius: 20px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		section {
+			text-align: center;
+			margin: 1rem;
+			font-size: larger;
+		}
+	</style>
+</head>
+<body>
+	<header>
+		<div class="rec_center">
+			<h1>Upload & Download</h1>
+		</div>
+	</header>
+	<section>
+		<article>
+			<h3>Upload a file</h3>
+			<form action="../cgi-bin/upload.py" method="post" enctype="multipart/form-data">
+				<input type="file" name="file" id="file">
+				<input type="submit" value="Upload">
+			</form>
+		</article>
+		<article>
+			<h3>Download a file</h3>
+			<div>
+				<img src="images/dolphin.jpg" alt="dolphin"> <br>
+				<a href="images/dolphin.jpg" download="dolphin.jpg"><span class="button"> Download</span></a>
+			</div>
+	</section>
+</body>
+</html>

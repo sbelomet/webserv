@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 11:35:54 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/09 13:41:40 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/12 11:52:34 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,7 @@ class Server
 
 		/* get individual */
 		
+		std::map<int, Config *>	&getServersMap( void );
 		Config		*&getConfigFromServer( int const &index );
 		int const	&getSocketFromSockets( size_t const &index );
 		sockaddr_in	&getSockaddrFromServerAddr( size_t const &index );

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Config.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:14 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/09 13:41:46 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/12 10:58:19 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ class Config
 		std::string						_root;
 		std::string						_host;
 		std::string						_index;
-		std::vector<std::string>		_listen;
+		std::string						_listen;
 		std::vector<Location *>			_locations;
 		std::vector<std::string>		_server_name;
 		std::map<short, std::string>	_error_pages;
@@ -67,9 +67,9 @@ class Config
 		std::string const	&getRoot( void ) const;
 		std::string const	&getHost( void ) const;
 		std::string const	&getIndex( void ) const;
+		std::string const	&getListen( void ) const;
 		size_t const	&getMaxClientBody( void ) const;
 		bool const		&getHasRootLocation( void ) const;
-		std::vector<std::string> const	&getListen( void ) const;
 		std::vector<Location *> const	&getLocations( void ) const;
 		std::vector<std::string> const	&getServerName( void ) const;
 		std::map<short, std::string> const	&getErrorPages( void ) const;
@@ -79,16 +79,16 @@ class Config
 		void	setRoot( std::string const & );
 		void	setHost( std::string const & );
 		void	setIndex( std::string const & );
+		void	setListen( std::string const & );
 		void	setMaxClientBody( size_t const & );
 		void	setLocations( std::vector<Location *> const & );
-		void	setListen( std::vector<std::string> const & );
 		void	setServerName( std::vector<std::string> const & );
 		void	setErrorPages( std::map<short, std::string> const & );
 
 		/* access methods for vectors/map */
 
 		void		pushLocation( Location *&location );
-		void		pushListen( std::string const &listen );
+	//	void		pushListen( std::string const &listen );
 		Location	*getSingleLocation( std::string const &path );
 		void		pushServerName( std::string const &serverName );
 		void		insertErrorPage( short const &num, std::string const &file );

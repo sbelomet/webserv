@@ -6,21 +6,20 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 13:38:03 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/10 15:57:38 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/11 15:42:00 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "httpHeader.hpp"
 
-HttpHeader::HttpHeader( void ): _sizeHeaders(10)
+HttpHeader::HttpHeader( void ): _sizeHeaders(9)
 {
 	short const size = getSizeHeaders();
 	std::string	headersKey[size] = {"DEFAULT", "Access-Control-Allow-Origin: ", "Connection: ",
-		"Content-Type: ", "Date: ", "Keep-Alive: ", "Location: ", "Transfer-Encoding: ",
+		"Content-Type: ", "Keep-Alive: ", "Location: ", "Transfer-Encoding: ",
 		"X-Content-Type-Options: ", "Content-Length: "};
 	std::string	headersValue[size] = {"DEFAULT", "*", std::string(), std::string(),
-		std::string(), "timeout=5, max=997", std::string(), std::string(),
-		"nosniff", std::string()};
+	"timeout=5, max=997", std::string(), std::string(), "nosniff", std::string()};
 	for (short i = 0; i < size; i++)
 	{
 		std::pair<std::string, std::string> pair;
@@ -60,6 +59,11 @@ std::string const &HttpHeader::getProtocol( void ) const
 	return (_protocol);
 }
 
+std::string const &HttpHeader::getFirstLine( void ) const
+{
+	return (_firstLine);
+}
+
 std::string const &HttpHeader::getStatusCode( void ) const
 {
 	return (_statusCode);
@@ -73,6 +77,11 @@ void	HttpHeader::setProtocol( std::string const &protocol )
 std::string const &HttpHeader::getInfoStatusCode( void ) const
 {
 	return (_infoStatusCode);
+}
+
+void	HttpHeader::setFirstLine( std::string const &firstLine )
+{
+	_firstLine = firstLine;
 }
 
 void	HttpHeader::setStatusCode( std::string const &statusCode )
@@ -133,6 +142,27 @@ std::vector<std::pair<std::string, std::string> > const	&HttpHeader::getHeaders(
 }
 
 /*  */
+
+void	HttpHeader::buildFirstLine( void )
+{
+	setFirstLine(getStatusCode() + " " + getInfoStatusCode());
+}
+
+std::string const	HttpHeader::composeHeader( void )
+{
+	std::string	toSend;
+
+	toSend = getFirstLine() + "\n";
+	std::vector<std::pair<std::string, std::string> >::const_iterator it;
+	for (it = getHeaders().begin(); it != getHeaders().end(); it++)
+	{
+		it++;
+		if (it->first == "Transfer-Encoding: ")
+			continue ;
+		toSend += it->first + it->second + "\n";
+	}
+	return (toSend);
+}
 
 void	HttpHeader::updateStatus( short const &statusCode )
 {

@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 13:34:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/11 15:55:24 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/12 13:43:40 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,7 +132,7 @@ void	Manager::epollStarting( Server &server )
 	//}
 }
 
-void	Manager::manageResponse( Server &server, httpRequest const &request,
+void	Manager::manageResponse( httpRequest const &request,
 	HttpResponse &response )
 {
 	if (response.getRequestStatusCode() == 400 || response.getRequestStatusCode() == 404)
@@ -157,29 +157,47 @@ void	Manager::manageResponse( Server &server, httpRequest const &request,
 			return (response.getHeader().updateStatus(413));
 		response.setMaxClientBodySize(clientMaxBodySize);
 	}
-	Mime	mime;
-	std::string extension = response.extractPathExtension(response.getPath());
-	std::string	mimeType = mime.getMimeType(extension);
-	response.getHeader().modifyValuePair("Content-Type", mimeType);
-
-	// build url and check other things
-	// check and send response error
-	// send response
-	// check reponse status
-	(void)server;
+	if (response.treatResponsePath(location))
+	{
+		Mime	mime;
+		std::string extension = extractPathExtension(response.getFilePath());
+		std::string	mimeType = mime.getMimeType(extension);
+		response.getHeader().modifyValuePair("Content-Type", mimeType);
+		response.setBodysize(fileSize(response.getFilePath()));
+		if (response.getToRedir())
+		{
+			response.updateHeader();
+			if (!response.sendHeader())
+				throw (Webserv::NoException());
+		}
+		else if (response.getAutoindex())
+		{
+			// check if autoindex -> send autoindex
+		}
+		// check is cgi -> setcontent type, update header, env, exec CGI
+		// check is post
+		else // get 
+		{}
+	}
 }
 
 void	Manager::waitingForResponse( Server &server, httpRequest const &request,
 	int const &socketIndex )
 {
-	HttpResponse	response(server.getConfigFromServer(socketIndex), request);
+	HttpResponse	response(server.getConfigFromServer(
+					server.getSockets()[server.getSocketFromSockets(socketIndex)]),
+					request);
 
-	manageResponse(server, request, response);
+	manageResponse(request, response);
 	std::string const	statusCode = response.getHeader().getStatusCode();
 	if (statusCode != "200")
-	{} // set content type
+	{
+		response.getHeader().modifyValuePair("Content-Type", "text/html");
+	}
 	else
-	{} // content type already set
+	{
+
+	}
 }
 
 /**
@@ -211,12 +229,13 @@ void	Manager::readRequest( Server &server, int const &fd )
 	waitingForResponse(server, request, server.getIndexSocketFromNewConnections(fd));
 	//int const		socketIndex = server.getIndexSocketFromNewConnections(fd);
 
-	Config *a = server.getConfigFromServer(server.getIndexSocketFromNewConnections(fd));
+/* 	Config *a = server.getConfigFromServer(server.getSockets()
+				[server.getSocketFromSockets(server.getIndexSocketFromNewConnections(fd))]);
 	CGI cgi;
 	cgi.fillEnv("cgi-bin/hello.py", a->getSingleLocation("/cgi-bin"));
 	// check status code
 	cgi.executeCGI(fd);
-	// check status code
+	// check status code */
 }
 
 void	Manager::makeAll( Server &server, std::string const &filepath )

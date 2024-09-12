@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 11:36:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/10 15:59:08 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/12 13:38:02 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,6 +111,11 @@ void	Server::insertNewConnection( int const &newConnection, int const &index )
 
 /*  */
 
+std::map<int, Config *>	&Server::getServersMap( void )
+{
+	return (_servers);
+}
+
 Config	*&Server::getConfigFromServer( int const &index )
 {
 	return (_servers[index]);
@@ -135,38 +140,31 @@ int	const	&Server::getIndexSocketFromNewConnections( int const &index )
 
 void	Server::createSockets( Config *&config )
 {
-	std::vector<std::string> const	listen = config->getListen();
-	for (size_t i = 0; i < listen.size(); i++)
-	{
-		// (IPv4, TCP type socket (two way byte stream), NULL)
-		int	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-		if (socket_fd == -1)
-			throw (Webserv::SocketException());
-		int const enable = 1;
-		if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
-			throw (Webserv::SocketOptException());
-		pushSocket(socket_fd);
-		insertServer(socket_fd, config);
-	}
+	// (IPv4, TCP type socket (two way byte stream), NULL)
+	int	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (socket_fd == -1)
+		throw (Webserv::SocketException());
+	int const enable = 1;
+	if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+		throw (Webserv::SocketOptException());
+	pushSocket(socket_fd);
+	insertServer(socket_fd, config);
 }
 
 void	Server::createServer( Config *&config )
 {
-	std::vector<std::string> const	listen = config->getListen();
-	for (size_t i = 0; i < listen.size(); i++)
+	std::string const	listen = config->getListen();
+	sockaddr_in	address = {}; // if not work use memset
+	address.sin_family = AF_INET;
+	if (!config->getHost().compare("localhost"))
+		address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	else
 	{
- 		sockaddr_in	address = {}; // if not work use memset
-		address.sin_family = AF_INET;
-		if (!config->getHost().compare("localhost"))
-			address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-		else
-		{
-			if (inet_pton(AF_INET, config->getHost().c_str(), &address.sin_addr) <= 0)
-				throw (Webserv::InetPtonException());
-		}
-		address.sin_port = htons(std::atoi(listen[i].c_str()));
-		pushServerAddr(address);
+		if (inet_pton(AF_INET, config->getHost().c_str(), &address.sin_addr) <= 0)
+			throw (Webserv::InetPtonException());
 	}
+	address.sin_port = htons(std::atoi(listen.c_str()));
+	pushServerAddr(address);
 }
 
 void	Server::bindServers( void )

@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 12:46:56 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/10 12:27:19 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/11 15:54:18 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ class Manager
 		bool	acceptConnection( Server &server, int const &index );
 		void	waitingForResponse( Server &server, httpRequest const &request,
 			int const &socketIndex );
-		void	manageResponse( Server &server, httpRequest const &request,
+		void	manageResponse( httpRequest const &request,
 			HttpResponse &response );
 	public:
 		Manager();
