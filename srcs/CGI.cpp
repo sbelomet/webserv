@@ -6,13 +6,13 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 10:43:35 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/11 10:07:54 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/13 14:50:49 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CGI.hpp"
 
-CGI::CGI() {}
+CGI::CGI() :_output(std::string()) {}
 CGI::CGI(CGI const &copy) { (void)copy; }
 CGI const &CGI::operator=(CGI const &copy) { (void)copy; return *this; }
 
@@ -33,6 +33,7 @@ CGI::~CGI()
 }
 
 std::map<std::string, std::string> const &CGI::getEnv( void ) const { return (_env); }
+std::string const &CGI::getOutput( void ) const { return (_output); }
 
 /**
  * Fills the _binaries map with the binaries that can be executed by the CGI
@@ -81,23 +82,63 @@ std::string	CGI::getBinary(std::string const &script)
 }
 
 /**
+ * 	std::string			string;
+	HTTPResponse		&response = client.getResponse();
+	HTTPHeader			&header = client.getHeader();
+	std::string			file = sock.getRealUrl(sockNbr, response.getUrl());
+    
+	client.setEnvValue("SERVER_NAME", sock.getServerName(sockNbr));
+    client.setEnvValue("GATEWAY_INTERFACE", "CGI/1.1");
+	client.setEnvValue("PATH_INFO", file);
+	client.setEnvValue("REQUEST_METHOD", response.getMethod());
+	client.setEnvValue("SCRIPT_FILENAME", file);
+	client.setEnvValue("SERVER_PROTOCOL", "HTTP/1.1");
+	client.setEnvValue("REDIRECT_STATUS", "200");
+	if (header.getContentType() == "")
+		client.setEnvValue("CONTENT_TYPE", "application/x-www-form-urlencoded");
+	else
+		client.setEnvValue("CONTENT_TYPE", header.getContentType());
+	if (client.getEnvValue("REQUEST_METHOD") == "POST")
+		client.setEnvValue("CONTENT_LENGTH", toString(client.getBodySize()));
+	else
+	{
+		if (client.isQueryString() == false)
+			client.setEnvValue("QUERY_STRING", "");
+	}
+ */
+
+/**
  * Fills and allocates the nessessary variables for the CGI execution
  * !!! Check status code after !!!
  */
-void CGI::fillEnv(std::string const &script, Location const *cgiLocation)
+void CGI::fillEnv(httpRequest const &request, std::string const &script, Location const *cgiLocation)
 {
 	if (cgiLocation == NULL)
 	{
-		_env["STATUS_CODE"] = "404";
+		_env["REDIRECT_STATUS"] = "404";
 		return ;
 	}
 	
 	fillBinaries(cgiLocation->getCgiPass());
 	
-	_env["i dont know"] = "what to put here";
-	_env["so here"] = "is a random env variable";
-	_env["filled with"] = "random stuff";
-	_env["STATUS_CODE"] = "200";
+	std::map<std::string, std::string> headers = request.getHeaders();
+	int pos = headers["host"].find(":");
+	_env["SERVER_NAME"] = headers["host"].substr(0, pos);
+	_env["SERVER_PORT"] = headers["host"].substr(pos + 1);
+	_env["GATEWAY_INTERFACE"] = "CGI/1.1";
+	_env["PATH_INFO"] = script;
+	_env["REQUEST_METHOD"] = request.getMethod();
+	_env["SCRIPT_FILENAME"] = script;
+	_env["SERVER_PROTOCOL"] = request.getVersion();
+	_env["REDIRECT_STATUS"] = "200";
+	_env["CONTENT_TYPE"] = headers["content-type"];
+	_env["CONTENT_LENGTH"] = headers["content-length"];
+	//_env["QUERY_STRING"] = "";
+
+	for (std::map<std::string, std::string>::iterator it = _env.begin(); it != _env.end(); it++)
+	{
+		std::cout << it->first << " : " << it->second << std::endl;
+	}
 
 	_malloc_env = new char*[_env.size() + 1];
 	size_t i = 0;
@@ -112,7 +153,7 @@ void CGI::fillEnv(std::string const &script, Location const *cgiLocation)
 	std::string binary = getBinary(script);
 	if (binary == "500")
 	{
-		_env["STATUS_CODE"] = "500";
+		_env["REDIRECT_STATUS"] = "500";
 		return ;
 	}
 	_argv = new char*[3];
@@ -125,7 +166,7 @@ void CGI::fillEnv(std::string const &script, Location const *cgiLocation)
  * Executes the CGI script and writes the response to the client
  * !!! Check status code after !!!
  */
-void CGI::executeCGI(int const &fd)
+void CGI::executeCGI(void)
 {
 	pid_t pid;
 	int status;
@@ -135,7 +176,7 @@ void CGI::executeCGI(int const &fd)
 	pid = fork();
 	if (pid == -1)
 	{
-		_env["STATUS_CODE"] = "500";
+		_env["REDIRECT_STATUS"] = "500";
 		return ;
 	}
 	else if (pid == 0)
@@ -143,7 +184,7 @@ void CGI::executeCGI(int const &fd)
 		dup2(tmpfd, STDOUT_FILENO);
 		if (execve(_argv[0], _argv, _malloc_env) == -1)
 		{
-			_env["STATUS_CODE"] = "500";
+			_env["REDIRECT_STATUS"] = "500";
 			exit(1);
 		}
 	}
@@ -154,28 +195,25 @@ void CGI::executeCGI(int const &fd)
 		{
 			if (WEXITSTATUS(status) != 0)
 			{
-				_env["STATUS_CODE"] = "500";
+				_env["REDIRECT_STATUS"] = "500";
 				std::cout << "CGI script exited with status " << WEXITSTATUS(status) << std::endl;
 				return ;
 			}
 		}
 		else
 		{
-			_env["STATUS_CODE"] = "500";
+			_env["REDIRECT_STATUS"] = "500";
 			return ;
 		}
 	}
 
-	std::string response = "";
 	char buffer[1024];
 	rewind(tmpfile);
 	while (!feof(tmpfile))
 	{
 		if (fgets(buffer, 1024, tmpfile) == NULL)
 			break;
-		response += buffer;
+		_output += buffer;
 	}
 	close(tmpfd);
-	std::cout << response << std::endl;
-	write(fd, response.c_str(), response.size());
 }

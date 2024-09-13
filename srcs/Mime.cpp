@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/06 14:43:31 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/06 15:43:55 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/13 14:57:46 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,6 @@ void	Mime::initMimeTypes()
 	_mimeTypes["otf"] = "font/otf";
 	_mimeTypes["png"] = "image/png";
 	_mimeTypes["pdf"] = "application/pdf";
-	_mimeTypes["php"] = "application/x-httpd-php";
 	_mimeTypes["ppt"] = "application/vnd.ms-powerpoint";
 	_mimeTypes["pptx"] = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
 	_mimeTypes["rar"] = "application/vnd.rar";

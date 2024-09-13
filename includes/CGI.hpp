@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 10:43:51 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/10 12:44:27 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/13 13:55:45 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 # include "Webserv.hpp"
 # include "Location.hpp"
+# include "httpRequest.hpp"
 # include <map>
 # include <string.h>
 # include <unistd.h>
@@ -31,6 +32,7 @@ class CGI
 		char **_malloc_env;
 		char **_argv;
 		int fd;
+		std::string _output;
 
 		CGI(CGI const &copy);
 		CGI const &operator=(CGI const &copy);
@@ -42,9 +44,10 @@ class CGI
 		~CGI();
 
 		std::map<std::string, std::string> const &getEnv( void ) const;
+		std::string const &getOutput( void ) const;
 
-		void fillEnv(std::string const &script, Location const *cgiLocation);
-		void executeCGI(int const &fd);
+		void fillEnv(httpRequest const &request, std::string const &script, Location const *cgiLocation);
+		void executeCGI();
 };
 
 #endif

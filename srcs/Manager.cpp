@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 13:34:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/12 13:43:40 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/13 14:12:42 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,6 +98,7 @@ bool	Manager::epollWaiting( Server &server )
 		else
 		{
 			readRequest(server, events[i].data.fd);
+			std::cout << "request answered" << std::endl;
 		}
 		// add another else if, if add stdin to epoll for check inputs
 	}
@@ -159,44 +160,84 @@ void	Manager::manageResponse( httpRequest const &request,
 	}
 	if (response.treatResponsePath(location))
 	{
+		std::cout << "AFTER TREAT" << std::endl;
 		Mime	mime;
 		std::string extension = extractPathExtension(response.getFilePath());
 		std::string	mimeType = mime.getMimeType(extension);
-		response.getHeader().modifyValuePair("Content-Type", mimeType);
-		response.setBodysize(fileSize(response.getFilePath()));
+		response.getHeader().modifyHeadersMap("Content-Type: ", mimeType);
+		if (!response.getFilePath().empty())
+			response.setBodysize(fileSize(response.getFilePath()));
 		if (response.getToRedir())
 		{
+			std::cout << "REDIR" << std::endl;
 			response.updateHeader();
 			if (!response.sendHeader())
 				throw (Webserv::NoException());
+			std::cout << "HEADER SENDED" << std::endl;
 		}
 		else if (response.getAutoindex())
 		{
-			// check if autoindex -> send autoindex
+		//	if (!response.sendAutoIndex())
+		//		throw (Webserv::NoException());
+			std::cout << "AUTOINDEX" << std::endl;
 		}
-		// check is cgi -> setcontent type, update header, env, exec CGI
-		// check is post
-		else // get 
-		{}
+		else if (response.getIsCgi())
+		{
+			std::cout << "CGI exec" << std::endl;
+			CGI cgi;
+			std::map<std::string, std::string> env;
+			cgi.fillEnv(request, response.getFilePath(), location);
+			env = cgi.getEnv();
+			if (env["REDIRECT_STATUS"] != "200")
+				response.getHeader().updateStatus(atoi(env["REDIRECT_STATUS"].c_str()));
+			cgi.executeCGI();
+			env = cgi.getEnv();
+			if (env["REDIRECT_STATUS"] != "200")
+				response.getHeader().updateStatus(atoi(env["REDIRECT_STATUS"].c_str()));
+			response.updateHeader();
+			std::stringstream	ss;
+			ss << cgi.getOutput().size();
+			response.getHeader().modifyHeadersMap("Content-Length: ", ss.str());
+			std::cout << response.getBodysize() << std::endl;
+			std::cout << "CGI OUTPUT size: " << cgi.getOutput().size() << std::endl;
+			if (!response.sendCgiOutput(cgi.getOutput()))
+				throw (Webserv::NoException());
+		}
+		else
+		{
+			std::cout << "GET" << std::endl;
+			if (response.getBodysize() > response.getMaxClientBodySize())
+				return (response.getHeader().updateStatus(413));
+			response.updateHeader();
+			if (!response.sendWithBody())
+				throw (Webserv::NoException());
+			std::cout << "WITH BODY SENDED" << std::endl;
+		}
 	}
 }
 
 void	Manager::waitingForResponse( Server &server, httpRequest const &request,
-	int const &socketIndex )
+	int const &fd )
 {
-	HttpResponse	response(server.getConfigFromServer(
-					server.getSockets()[server.getSocketFromSockets(socketIndex)]),
-					request);
+	int	const	socketIndex = server.getIndexSocketFromNewConnections(fd);
+	HttpResponse	response(server.getConfigFromServer(server.getSockets()[server.getSocketFromSockets(socketIndex)]),
+		request, fd);
 
 	manageResponse(request, response);
 	std::string const	statusCode = response.getHeader().getStatusCode();
 	if (statusCode != "200")
 	{
-		response.getHeader().modifyValuePair("Content-Type", "text/html");
+		std::cout << "WAITING FOR RESPONSE status code: " << statusCode << std::endl;
+		//response.getHeader().modifyValuePair("Content-Type: ", "text/html");
 	}
 	else
 	{
-
+		if (response.getHeader().getHeaders()["Connection: "] == "close")
+		{
+			epoll_ctl(server.getEpollFd(), EPOLL_CTL_DEL, fd, NULL);
+			close(fd);
+		}
+		std::cout << "WAITING FOR RESPONSE1" << std::endl;
 	}
 }
 
@@ -226,22 +267,14 @@ void	Manager::readRequest( Server &server, int const &fd )
 	buff[read_bytes] = '\0';
 	request.parseRequest(buff, read_bytes);
 	std::cout << request << std::endl;
-	waitingForResponse(server, request, server.getIndexSocketFromNewConnections(fd));
+	waitingForResponse(server, request, fd);
 	//int const		socketIndex = server.getIndexSocketFromNewConnections(fd);
-
-/* 	Config *a = server.getConfigFromServer(server.getSockets()
-				[server.getSocketFromSockets(server.getIndexSocketFromNewConnections(fd))]);
-	CGI cgi;
-	cgi.fillEnv("cgi-bin/hello.py", a->getSingleLocation("/cgi-bin"));
-	// check status code
-	cgi.executeCGI(fd);
-	// check status code */
 }
 
 void	Manager::makeAll( Server &server, std::string const &filepath )
 {
 	getMapConfig().makeAll(server, filepath);
-	//std::cout << _map_config << std::endl;
+	std::cout << _map_config << std::endl;
 	epollStarting(server);
 	while (epollWaiting(server) != false)
 		;

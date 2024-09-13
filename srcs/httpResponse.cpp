@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:36 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/11 16:01:39 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/13 14:06:34 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,9 @@ HttpResponse const	&HttpResponse::operator=( HttpResponse const &copy )
 	return (*this);
 }
 
-HttpResponse::HttpResponse( Config *&config, httpRequest const &request ):
-    _header(HttpHeader()), _config(config), _fd(-1), _isOk(true), _host(std::string()),
-	_path(request.getPath()), _method(request.getMethod()), _toRedir(false),
+HttpResponse::HttpResponse( Config *&config, httpRequest const &request, int const &fd ):
+    _header(HttpHeader()), _config(config), _fd(fd), _isOk(true), _host(std::string()),
+	_path(request.getPath()), _isCgi(false), _method(request.getMethod()), _toRedir(false),
 	_filePath(std::string()), _mimeType("text/html"), _bodySize(0), _autoindex(false),
 	_requestStatusCode(request.getStatusCode()), _maxClientBodySize(1024 * 1024)
 {
@@ -43,7 +43,7 @@ HttpResponse::HttpResponse( Config *&config, httpRequest const &request ):
 	std::map<std::string, std::string>	headers = request.getHeaders();
 	setHost(headers["host"]);
 	getHeader().setAcceptTypefiles(headers["accept"]);
-	getHeader().modifyValuePair("Connection", headers["connection"]);
+	getHeader().modifyHeadersMap("Connection: ", headers["connection"]);
 	getHeader().updateStatus(request.getStatusCode());
 }
 
@@ -99,6 +99,11 @@ std::string const &HttpResponse::getPath( void ) const
 	return (_path);
 }
 
+bool const &HttpResponse::getIsCgi( void ) const
+{
+	return (_isCgi);
+}
+
 void	HttpResponse::setToRedir( bool const &toRedir )
 {
 	_toRedir = toRedir;
@@ -122,6 +127,11 @@ void	HttpResponse::setHost( std::string const &host )
 void	HttpResponse::setPath( std::string const &path )
 {
 	_path = path;
+}
+
+void	HttpResponse::setIsCgi( bool const &isCgi )
+{
+	_isCgi = isCgi;
 }
 
 void	HttpResponse::setConfig( Config * const &config )
@@ -194,14 +204,21 @@ void	HttpResponse::setMaxClientBodySize( size_t const &maxClientBodySize )
 */
 int	HttpResponse::checkPathRedir( Location *location )
 {
-	if (isDirectory(getPath()))
+	std::string const	rootPath = concatenateRoot(location, getPath());
+	if (isDirectory(rootPath))
 	{
 		if (!location->getIndex().empty())
 			return (0);
 		else if (!location->getReturn().path.empty())
+		{
 			setToRedir(true);
+			return (0);
+		}
 		else if (location->getAutoindexSet())
+		{
 			setAutoindex(location->getAutoindex());
+			return (0);
+		}
 		else
 			return (1);
 	}
@@ -229,14 +246,16 @@ bool	HttpResponse::checkPath( Location *location,
 			getHeader().updateStatus(403);
 			return (false);
 		}
+		return (false);
 	}
 	if ((fd = open(rootPath.c_str(), O_RDWR)) == -1)
 	{
-		getHeader().updateStatus(404);
 		close(fd);
+		getHeader().updateStatus(404);
 		return (false);
 	}
 	close(fd);
+	setFilePath(rootPath);
 	return (true);
 }
 
@@ -280,30 +299,77 @@ bool	HttpResponse::treatResponsePath( Location *location )
 	if (getToRedir())
 	{
 		if (!location->getReturn().path.empty())
-			getHeader().modifyValuePair("Location", location->getReturn().path);
+			getHeader().modifyHeadersMap("Location: ", location->getReturn().path);
 		else
-			getHeader().modifyValuePair("Location", location->getIndex());
+			getHeader().modifyHeadersMap("Location: ", location->getIndex());
 		getHeader().updateStatus(301);
 		return (true);
 	}
 	if (!checkPath(location,
 		concatenateRoot(location, getPath())))
+	{
 		return (false);
+	}
 	if (getMethod() == "DELETE" && !getFilePath().empty())
-	{	
-		std::remove(getPath().c_str());
-		setPath("/deleted.html");
+	{
+		std::cout << "DELETE" << std::endl;
+		std::remove(concatenateRoot(location, getPath()).c_str());
 		setFilePath("./public/deleted.html");
 		return (true);
 	}
-	// get?
-	// Post?
+	if (!location->getCgiPass().empty())
+	{
+		std::cout << "CGI" << std::endl;
+		setIsCgi(true);
+		return (true);
+	}
+	
+	return (true);
+}
+
+bool	HttpResponse::sendWithBody( void )
+{
+	std::cout << "file path ->" << getFilePath() << std::endl;
+	std::ifstream   infile(getFilePath().c_str());
+	if (!infile.is_open())
+		throw (Webserv::FileException());
+	
+	std::string	line;
+	std::string	toSend = getHeader().composeHeader();
+	toSend += "\n";
+	while (std::getline(infile, line))
+	{
+		toSend += line + "\n";
+	}
+	std::cout << toSend << std::endl;
+	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
+	{
+		perror("send()");
+		infile.close();
+		return (false);
+	}
+	infile.close();
+	return (true);
+}
+
+bool	HttpResponse::sendCgiOutput( std::string const &output )
+{
+	std::string	toSend = getHeader().composeCgiHeader();
+	toSend += "\n";
+	toSend += output;
+	std::cout << toSend << std::endl;
+	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
+	{
+		perror("send()");
+		return (false);
+	}
 	return (true);
 }
 
 bool	HttpResponse::sendHeader( void )
 {
 	std::string const	toSend = getHeader().composeHeader();
+	std::cout << toSend << std::endl;
 	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
 	{
 		perror("send()");
@@ -314,16 +380,17 @@ bool	HttpResponse::sendHeader( void )
 
 void	HttpResponse::updateHeader( void )
 {
-	HttpHeader	header = getHeader();
-	if (header.getStatusCode() != "200")
-		header.modifyValuePair("Connection", "close");
-	else
-		header.modifyValuePair("Connection", "keep-alive");
-	header.buildFirstLine();
+	if (getHeader().getStatusCode() != "200")
+		getHeader().modifyHeadersMap("Connection: ", "close");
+	getHeader().setFirstLine(getHeader().getProtocol() + " " + getHeader().getStatusCode()
+		+ " " + getHeader().getInfoStatusCode() + "\n");
 	if (getBodysize() != 0)
 	{
 		std::stringstream	ss;
 		ss << getBodysize();
-		header.modifyValuePair("Content-Length", ss.str());
+		std::cout << "Content-Length: " << ss.str() << std::endl;
+		getHeader().modifyHeadersMap("Content-Length: ", ss.str());
 	}
+	else
+		getHeader().modifyHeadersMap("Content-Length: ", "0");
 }

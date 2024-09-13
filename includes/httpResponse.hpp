@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpResponse.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:20 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/11 16:00:31 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/13 11:20:38 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ class HttpResponse
 		bool		_isOk; // bool to know is response is 200
 		std::string	_host;
 		std::string	_path; // ex. -> /index.html
+		bool		_isCgi; // if location have a cgi
 		std::string	_method; // GET or POST or DELETE
 		bool		_toRedir; // if location have a return
 		std::string	_filePath; // path with root for checking and opening
@@ -49,7 +50,8 @@ class HttpResponse
 		HttpResponse const &operator=( HttpResponse const &copy );
 	public:
 		~HttpResponse( void );
-		HttpResponse( Config *&config, httpRequest const &request );
+		HttpResponse( Config *&config, httpRequest const &request,
+			int const &fd );
 
 		/* getters - setters */
 
@@ -66,6 +68,9 @@ class HttpResponse
 
 		std::string const &getPath( void ) const;
 		void	setPath( std::string const &path );
+
+		bool const &getIsCgi( void ) const;
+		void	setIsCgi( bool const &isCgi );
 
 		Config * const &getConfig( void ) const;
 		void	setConfig( Config * const &config );
@@ -98,9 +103,12 @@ class HttpResponse
 		/* methods */
 		bool	sendHeader( void );
 		void	updateHeader( void );
-		int		checkPathRedir( Location *location );
+		bool	sendWithBody( void );
+		bool	sendCgiOutput( std::string const &output );
+		bool	sendAutoIndex( void );
 		bool	checkPath( Location *location,
 			std::string const &rootPath );
+		int		checkPathRedir( Location *location );
 		bool	treatResponsePath( Location *location );
 		std::string	const	concatenateRoot( Location *location,
 			std::string const &path );

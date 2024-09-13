@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 10:33:55 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/12 11:11:15 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/13 13:01:51 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ class HttpHeader
 		std::string			_infoStatusCode; // Created, Forbidden, etc..
 		std::string			_acceptTypefiles;
 
-		std::vector<std::pair<std::string, std::string> > _headers; // Date to do
+		std::map<std::string, std::string>	_headers;
 	public:
 		HttpHeader( void );
 		virtual ~HttpHeader( void );
@@ -57,17 +57,14 @@ class HttpHeader
 		std::string const &getAcceptTypefiles( void ) const;
 		void	setAcceptTypefiles( std::string const &acceptTypefiles );
 
-		std::pair<std::string, std::string>	const	&getPairFromHeaders(
-			std::string const &key ) const;
-		std::vector<std::pair<std::string, std::string> >	&getHeaders( void );
-		void	modifyValuePair( std::string const &key, std::string const &value );
-		void	pushPairToHeaders( std::pair<std::string, std::string> const &pair );
-		std::vector<std::pair<std::string, std::string> > const	&getHeaders( void ) const;
+		std::map<std::string, std::string>	&getHeaders( void );
+		std::map<std::string, std::string> const	&getHeaders( void ) const;
+		void	modifyHeadersMap( std::string const &key, std::string const &value );
 
 		/* methods  */
 
-		void	buildFirstLine( void );
 		std::string const	composeHeader( void );
+		std::string const	composeCgiHeader( void );
 		void	updateStatus( short const &statusCode );
 };
 

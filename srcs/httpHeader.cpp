@@ -3,28 +3,26 @@
 /*                                                        :::      ::::::::   */
 /*   httpHeader.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 13:38:03 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/11 15:42:00 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/13 13:22:28 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "httpHeader.hpp"
 
-HttpHeader::HttpHeader( void ): _sizeHeaders(9)
+HttpHeader::HttpHeader( void ): _sizeHeaders(8)
 {
 	short const size = getSizeHeaders();
 	std::string	headersKey[size] = {"DEFAULT", "Access-Control-Allow-Origin: ", "Connection: ",
-		"Content-Type: ", "Keep-Alive: ", "Location: ", "Transfer-Encoding: ",
-		"X-Content-Type-Options: ", "Content-Length: "};
+		"Content-Type: ", "Keep-Alive: ", "Location: ", "X-Content-Type-Options: ",
+		"Content-Length: "};
 	std::string	headersValue[size] = {"DEFAULT", "*", std::string(), std::string(),
-	"timeout=5, max=997", std::string(), std::string(), "nosniff", std::string()};
-	for (short i = 0; i < size; i++)
+	"timeout=5, max=997", std::string(), "nosniff", std::string()};
+	for (int i = 0; i < size; i++)
 	{
-		std::pair<std::string, std::string> pair;
-		pair = std::make_pair<std::string, std::string>(headersKey[i], headersValue[i]);
-		pushPairToHeaders(pair);
+		modifyHeadersMap(headersKey[i], headersValue[i]);
 	}
 }
 
@@ -79,9 +77,19 @@ std::string const &HttpHeader::getInfoStatusCode( void ) const
 	return (_infoStatusCode);
 }
 
+std::string const &HttpHeader::getAcceptTypefiles( void ) const
+{
+	return (_acceptTypefiles);
+}
+
 void	HttpHeader::setFirstLine( std::string const &firstLine )
 {
 	_firstLine = firstLine;
+}
+
+std::map<std::string, std::string> &HttpHeader::getHeaders( void )
+{
+	return (_headers);
 }
 
 void	HttpHeader::setStatusCode( std::string const &statusCode )
@@ -94,72 +102,54 @@ void	HttpHeader::setInfoStatusCode( std::string const &infoStatusCode )
 	_infoStatusCode = infoStatusCode;
 }
 
-std::string const &HttpHeader::getAcceptTypefiles( void ) const
-{
-	return (_acceptTypefiles);
-}
-
 void	HttpHeader::setAcceptTypefiles( std::string const &acceptTypefiles )
 {
 	_acceptTypefiles = acceptTypefiles;
 }
 
-std::pair<std::string, std::string>	const	&HttpHeader::getPairFromHeaders(
-	std::string const &key ) const
-{
-	std::vector<std::pair<std::string, std::string> >::const_iterator	it;
-	for (it = getHeaders().begin(); it != getHeaders().end(); it++)
-	{
-		if (it->first == key)
-			return (*it);
-	}
-	return (getHeaders()[0]);
-}
-
-std::vector<std::pair<std::string, std::string> > &HttpHeader::getHeaders( void )
+std::map<std::string, std::string> const	&HttpHeader::getHeaders( void ) const
 {
 	return (_headers);
 }
 
-void	HttpHeader::modifyValuePair( std::string const &key, std::string const &value )
+void	HttpHeader::modifyHeadersMap( std::string const &key, std::string const &value )
 {
-	std::vector<std::pair<std::string, std::string> >::iterator	it;
-	for (it = getHeaders().begin(); it != getHeaders().end(); it++)
-	{
-		if (it->first == key)
-			it->second = value;
-	}
-}
-
-void	HttpHeader::pushPairToHeaders( std::pair<std::string, std::string> const &pair )
-{
-	_headers.push_back(pair);
-}
-
-std::vector<std::pair<std::string, std::string> > const	&HttpHeader::getHeaders( void ) const
-{
-	return (_headers);
+	_headers[key] = value;
 }
 
 /*  */
-
-void	HttpHeader::buildFirstLine( void )
-{
-	setFirstLine(getStatusCode() + " " + getInfoStatusCode());
-}
 
 std::string const	HttpHeader::composeHeader( void )
 {
 	std::string	toSend;
 
-	toSend = getFirstLine() + "\n";
-	std::vector<std::pair<std::string, std::string> >::const_iterator it;
+	toSend = getFirstLine();
+	std::map<std::string, std::string>::const_iterator it;
 	for (it = getHeaders().begin(); it != getHeaders().end(); it++)
 	{
-		it++;
-		if (it->first == "Transfer-Encoding: ")
+		if ((it->first == "Location: " && it->second.empty())
+			|| it->first == "DEFAULT")
 			continue ;
 		toSend += it->first + it->second + "\n";
+	}
+	return (toSend);
+}
+
+std::string const	HttpHeader::composeCgiHeader( void )
+{
+	std::string	toSend;
+
+	toSend = getFirstLine();
+	std::map<std::string, std::string>::const_iterator it;
+	for (it = getHeaders().begin(); it != getHeaders().end(); it++)
+	{
+		if ((it->first == "Location: " && it->second.empty())
+			|| it->first == "DEFAULT")
+			continue ;
+		if (it->first == "Content-Type: ")
+			toSend += it->first + it->second + "; charset=utf-8\n";
+		else
+			toSend += it->first + it->second + "\n";
 	}
 	return (toSend);
 }

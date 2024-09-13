@@ -19,6 +19,11 @@
 			margin: 1rem;
 			font-size: larger;
 		}
+		.dlbutton:hover {
+			cursor: pointer;
+			transform: scale(1.05);
+			transition: all .05s ease;
+		}
 	</style>
 </head>
 <body>
@@ -39,7 +44,9 @@
 			<h3>Download a file</h3>
 			<div>
 				<img src="images/dolphin.jpg" alt="dolphin"> <br>
-				<a href="images/dolphin.jpg" download="dolphin.jpg"><span class="button"> Download</span></a>
+				<a href="images/dolphin.jpg" download="dolphin.jpg">
+					<img class="dlbutton" src="images/download.png" alt="download button">
+				</a>
 			</div>
 	</section>
 </body>

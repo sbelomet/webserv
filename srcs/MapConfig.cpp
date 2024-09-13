@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 10:28:01 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/12 13:36:25 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/13 10:04:45 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -222,6 +222,7 @@ void	MapConfig::fillLocations( Config *config )
 	std::vector<Location *> locations = config->getLocations();
 	Location *rootLocation = NULL;
 
+	// find the root location and fill in missing values
 	for (std::vector<Location *>::iterator it = locations.begin(); it != locations.end(); it++)
 	{
 		if ((*it)->getLocation() == "/")
@@ -229,9 +230,15 @@ void	MapConfig::fillLocations( Config *config )
 			rootLocation = *it;
 			if (rootLocation->getMaxClientBody() == 1)
 				rootLocation->setMaxClientBody(config->getMaxClientBody());
+			if (rootLocation->getRoot().empty())
+				rootLocation->setRoot(config->getRoot());
+			if (rootLocation->getIndex().empty())
+				rootLocation->setIndex(config->getIndex());
 			break;
 		}
 	}
+
+	// fill in missing values in the other locations
 	for (std::vector<Location *>::iterator it = locations.begin(); it != locations.end(); it++)
 	{
 		if ((*it)->getLocation() == "/")

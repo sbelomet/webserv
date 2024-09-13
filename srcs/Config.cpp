@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:09 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/12 11:01:05 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/13 11:05:47 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,12 +77,24 @@ void	Config::insertErrorPage( short const &num, std::string const &file ) { _err
 
 /*  */
 
+static	std::string const	getExtension( std::string const &word )
+{
+	size_t	pos = word.find_last_of('.');
+	if (pos != std::string::npos)
+		return (word.substr(pos));
+	else
+		return (std::string());
+}
+
 Location	*Config::getSingleLocation( std::string const &path )
 {
 	std::string					remainder("/");
-	Location					*currLocation = NULL;
+	Location					*defaultLocation = NULL;
 	std::vector<std::string>	words = vecSplit(path, '/');
-
+	std::string					extension;	
+	
+	if (words.size() > 0)
+		extension = getExtension(words[(words.size() - 1)]);
 	if (words.empty())
 		words.push_back("");
 	for (size_t i = 0; i < words.size(); i++)
@@ -91,17 +103,21 @@ Location	*Config::getSingleLocation( std::string const &path )
 			remainder += words[i];
 		else
 			remainder += "/" + words[i];
-
 		for (std::vector<Location *>::iterator it = _locations.begin(); it != _locations.end(); it++)
 		{
-			if ((*it)->getLocation() == remainder)
+			if (!extension.empty())
 			{
-				currLocation = *it;
-				break;
+				std::string const	locationExt = getExtension((*it)->getLocation());
+				if (extension == locationExt)
+					return (*it);
 			}
+			if ((*it)->getLocation() == "/")
+				defaultLocation = *it;
+			if ((*it)->getLocation() == remainder)
+				return (*it);
 		}
 	}
-	return (currLocation);
+	return (defaultLocation);
 }
 
 void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitParenth )
@@ -200,10 +216,10 @@ void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitPar
 				std::string location = line.substr(it - line.begin(), (loc_end - line.begin()) - (it - line.begin()));
 				it = loc_end;
 
-				// check if location value starts with a slash
-				if (location[0] != '/')
+				// check if location value starts with a slash or a star
+				if (location[0] != '/' && location[0] != '*')
 				{
-					std::cerr << "ERROR on line " << lineCount << ": Location value must start with a slash" << std::endl;
+					std::cerr << "ERROR on line " << lineCount << ": Location value must start with a slash or a star" << std::endl;
 					throw Webserv::NoException();
 				}
 

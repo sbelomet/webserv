@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/21 10:32:48 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/11 16:02:19 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/12 10:14:32 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,18 +91,18 @@ bool	isDirectory( std::string const &path )
 {
 	struct stat	info;
 
-	if (stat(path.c_str(), &info) != 0 || !(info.st_mode & S_IFDIR))
-		return (false);
-	return (true);
+	if (stat(path.c_str(), &info) == 0 && (info.st_mode & S_IFDIR))
+		return (true);
+	return (false);
 }
 
 bool	isRegularFile( std::string const &path )
 {
 	struct stat	info;
 
-	if (stat(path.c_str(), &info) != 0 || !(info.st_mode & S_IFREG))
-		return (false);
-	return (true);
+	if (stat(path.c_str(), &info) == 0 && (info.st_mode & S_IFREG))
+		return (true);
+	return (false);
 }
 
 size_t	fileSize( int const fd)
