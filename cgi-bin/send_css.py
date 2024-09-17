@@ -1,7 +1,0 @@
-print("HTTP/1.1 200 OK")
-print("Content-type: text/css")
-print("Content-length: 40")
-print()
-print("body {")
-print("  background-color: lightblue;")
-print("}")

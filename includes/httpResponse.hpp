@@ -6,17 +6,19 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:20 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/13 11:20:38 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/17 11:50:28 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HTTPRESPONSE_HPP
 # define HTTPRESPONSE_HPP
 
+# include <ctime>
 # include <fcntl.h>
 # include "Mime.hpp"
 # include <iostream>
 # include <unistd.h>
+# include <dirent.h>
 # include "Config.hpp"
 
 # include "httpHeader.hpp"
@@ -24,6 +26,7 @@
 
 class Config;
 class HttpHeader;
+class HttpRequest;
 
 class HttpResponse
 {
@@ -50,7 +53,7 @@ class HttpResponse
 		HttpResponse const &operator=( HttpResponse const &copy );
 	public:
 		~HttpResponse( void );
-		HttpResponse( Config *&config, httpRequest const &request,
+		HttpResponse( Config *config, httpRequest const &request,
 			int const &fd );
 
 		/* getters - setters */
@@ -60,6 +63,9 @@ class HttpResponse
 		bool const &getIsOk( void ) const;
 		void	setIsOk( bool const &path );
 
+		bool const &getIsCgi( void ) const;
+		void	setIsCgi( bool const &isCgi );
+
 		bool const &getToRedir( void ) const;
 		void	setToRedir( bool const &toRedir );
 
@@ -68,9 +74,6 @@ class HttpResponse
 
 		std::string const &getPath( void ) const;
 		void	setPath( std::string const &path );
-
-		bool const &getIsCgi( void ) const;
-		void	setIsCgi( bool const &isCgi );
 
 		Config * const &getConfig( void ) const;
 		void	setConfig( Config * const &config );
@@ -104,14 +107,21 @@ class HttpResponse
 		bool	sendHeader( void );
 		void	updateHeader( void );
 		bool	sendWithBody( void );
-		bool	sendCgiOutput( std::string const &output );
+
 		bool	sendAutoIndex( void );
 		bool	checkPath( Location *location,
 			std::string const &rootPath );
-		int		checkPathRedir( Location *location );
+		std::string	addTimeAndSize( int const &type );
 		bool	treatResponsePath( Location *location );
+		std::string	getDirectories( std::map<std::string,
+			int> const &directoryContent );
+		std::string	getRegularFiles( std::map<std::string,
+			int> const &directoryContent);
+		bool	sendCgiOutput( std::string const &output );
 		std::string	const	concatenateRoot( Location *location,
 			std::string const &path );
+		std::string	buildLine( std::string const &name, int const &type );
+
 };
 
 #endif

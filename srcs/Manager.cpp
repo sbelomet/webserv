@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 13:34:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/13 14:12:42 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/17 15:30:57 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,8 +143,6 @@ void	Manager::manageResponse( httpRequest const &request,
 		return (response.getHeader().updateStatus(404));
 	if (!location->isAllowedMethod(response.getMethod()))
 		return (response.getHeader().updateStatus(405));
-	if (response.checkPathRedir(location) == 1)
-		return (response.getHeader().updateStatus(404));
 	if (!request.getBody().empty())
 	{
 		size_t	clientMaxBodySize = location->getMaxClientBody();
@@ -160,7 +158,6 @@ void	Manager::manageResponse( httpRequest const &request,
 	}
 	if (response.treatResponsePath(location))
 	{
-		std::cout << "AFTER TREAT" << std::endl;
 		Mime	mime;
 		std::string extension = extractPathExtension(response.getFilePath());
 		std::string	mimeType = mime.getMimeType(extension);
@@ -177,29 +174,29 @@ void	Manager::manageResponse( httpRequest const &request,
 		}
 		else if (response.getAutoindex())
 		{
-		//	if (!response.sendAutoIndex())
-		//		throw (Webserv::NoException());
 			std::cout << "AUTOINDEX" << std::endl;
+			if (!response.sendAutoIndex())
+				throw (Webserv::NoException());
 		}
 		else if (response.getIsCgi())
 		{
-			std::cout << "CGI exec" << std::endl;
+			std::cout << "CGI" << std::endl;
 			CGI cgi;
 			std::map<std::string, std::string> env;
-			cgi.fillEnv(request, response.getFilePath(), location);
+			cgi.setupCGI(request, response.getFilePath(), location);
 			env = cgi.getEnv();
 			if (env["REDIRECT_STATUS"] != "200")
-				response.getHeader().updateStatus(atoi(env["REDIRECT_STATUS"].c_str()));
-			cgi.executeCGI();
+				return (response.getHeader().updateStatus(atoi(env["REDIRECT_STATUS"].c_str())));
+
+			cgi.executeCGI(request.getBody());
 			env = cgi.getEnv();
 			if (env["REDIRECT_STATUS"] != "200")
-				response.getHeader().updateStatus(atoi(env["REDIRECT_STATUS"].c_str()));
+				return (response.getHeader().updateStatus(atoi(env["REDIRECT_STATUS"].c_str())));
+
 			response.updateHeader();
 			std::stringstream	ss;
 			ss << cgi.getOutput().size();
 			response.getHeader().modifyHeadersMap("Content-Length: ", ss.str());
-			std::cout << response.getBodysize() << std::endl;
-			std::cout << "CGI OUTPUT size: " << cgi.getOutput().size() << std::endl;
 			if (!response.sendCgiOutput(cgi.getOutput()))
 				throw (Webserv::NoException());
 		}
@@ -237,7 +234,7 @@ void	Manager::waitingForResponse( Server &server, httpRequest const &request,
 			epoll_ctl(server.getEpollFd(), EPOLL_CTL_DEL, fd, NULL);
 			close(fd);
 		}
-		std::cout << "WAITING FOR RESPONSE1" << std::endl;
+		std::cout << "DONE" << std::endl;
 	}
 }
 
@@ -274,17 +271,8 @@ void	Manager::readRequest( Server &server, int const &fd )
 void	Manager::makeAll( Server &server, std::string const &filepath )
 {
 	getMapConfig().makeAll(server, filepath);
-	std::cout << _map_config << std::endl;
+	//std::cout << _map_config << std::endl;
 	epollStarting(server);
 	while (epollWaiting(server) != false)
 		;
 }
-
-/**
- * POST:
- * 1. check content-length and max body size
- * 2. check content-type (multipart/form-data and boundary)
- * 3. put body in a file
- * 4. send file to cgi
- * 
-*/

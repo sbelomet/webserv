@@ -3,14 +3,19 @@
 /*                                                        :::      ::::::::   */
 /*   index.css                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 10:24:50 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/08/29 10:33:59 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/17 12:58:54 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #omega {
     color: blueviolet;
     font-size: xx-large;
+	text-align: center;
+}
+
+section {
+	text-align: center;
 }

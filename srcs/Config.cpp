@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:09 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/13 11:05:47 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/17 14:04:31 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ Config::Config( void ) : _root(std::string()), _host(std::string()), _index(std:
 
 Config::~Config( void )
 {
+	std::cout << "Config destructor called" << std::endl;
 	std::vector<Location *> locations = getLocations();
 	for (size_t i = 0; i < locations.size(); i++)
 	{
@@ -88,11 +89,11 @@ static	std::string const	getExtension( std::string const &word )
 
 Location	*Config::getSingleLocation( std::string const &path )
 {
+	std::string					extension;
 	std::string					remainder("/");
 	Location					*defaultLocation = NULL;
 	std::vector<std::string>	words = vecSplit(path, '/');
-	std::string					extension;	
-	
+
 	if (words.size() > 0)
 		extension = getExtension(words[(words.size() - 1)]);
 	if (words.empty())

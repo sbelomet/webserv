@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:36 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/13 14:06:34 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/17 11:50:26 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ HttpResponse const	&HttpResponse::operator=( HttpResponse const &copy )
 	return (*this);
 }
 
-HttpResponse::HttpResponse( Config *&config, httpRequest const &request, int const &fd ):
+HttpResponse::HttpResponse( Config *config, httpRequest const &request, int const &fd ):
     _header(HttpHeader()), _config(config), _fd(fd), _isOk(true), _host(std::string()),
 	_path(request.getPath()), _isCgi(false), _method(request.getMethod()), _toRedir(false),
 	_filePath(std::string()), _mimeType("text/html"), _bodySize(0), _autoindex(false),
@@ -199,53 +199,32 @@ void	HttpResponse::setMaxClientBodySize( size_t const &maxClientBodySize )
 	_maxClientBodySize = maxClientBodySize;
 }
 
-/**
- * If path is a directory check for redirections and return 1 if not found, else 0
-*/
-int	HttpResponse::checkPathRedir( Location *location )
-{
-	std::string const	rootPath = concatenateRoot(location, getPath());
-	if (isDirectory(rootPath))
-	{
-		if (!location->getIndex().empty())
-			return (0);
-		else if (!location->getReturn().path.empty())
-		{
-			setToRedir(true);
-			return (0);
-		}
-		else if (location->getAutoindexSet())
-		{
-			setAutoindex(location->getAutoindex());
-			return (0);
-		}
-		else
-			return (1);
-	}
-	return (0);
-}
-
 bool	HttpResponse::checkPath( Location *location,
 	std::string const &rootPath )
 {
 	int	fd;
 	if (isDirectory(rootPath))
 	{
-		if (getPath() == "/")
+		std::cout << "IS A DIRECTORY" << std::endl;
+		if (!location->getIndex().empty())
 		{
-			setFilePath(rootPath + "/" + getConfig()->getIndex());
-			return (true);
-		}
-		else if (!location->getIndex().empty())
-		{
+			std::cout << "HAVE A INDEX" << std::endl;
 			setFilePath(rootPath + "/" + location->getIndex());
 			return (true);
 		}
-		else if (!getAutoindex())
+		else if (!location->getReturn().path.empty())
 		{
-			getHeader().updateStatus(403);
-			return (false);
+			std::cout << "HAVE A RETURN" << std::endl;
+			setToRedir(true);
+			return (true);
 		}
+		else if (location->getAutoindex())
+		{
+			setAutoindex(true);
+			setFilePath(rootPath);
+			return (true);
+		}
+		getHeader().updateStatus(403);
 		return (false);
 	}
 	if ((fd = open(rootPath.c_str(), O_RDWR)) == -1)
@@ -296,6 +275,9 @@ std::string	const	HttpResponse::concatenateRoot( Location *location,
 
 bool	HttpResponse::treatResponsePath( Location *location )
 {
+	if (!checkPath(location,
+		concatenateRoot(location, getPath())))
+		return (false);
 	if (getToRedir())
 	{
 		if (!location->getReturn().path.empty())
@@ -304,11 +286,6 @@ bool	HttpResponse::treatResponsePath( Location *location )
 			getHeader().modifyHeadersMap("Location: ", location->getIndex());
 		getHeader().updateStatus(301);
 		return (true);
-	}
-	if (!checkPath(location,
-		concatenateRoot(location, getPath())))
-	{
-		return (false);
 	}
 	if (getMethod() == "DELETE" && !getFilePath().empty())
 	{
@@ -323,7 +300,147 @@ bool	HttpResponse::treatResponsePath( Location *location )
 		setIsCgi(true);
 		return (true);
 	}
-	
+	return (true);
+}
+
+std::string	HttpResponse::addTimeAndSize( int const &type )
+{
+	struct stat	info;
+	std::string line;
+	std::string	time;
+	std::string	size = "<div>";
+
+	stat(getFilePath().c_str(), &info);
+	time = ctime(&info.st_mtime);
+	time = time.substr(0, (time.size() - 1));
+	// SPLIT AND REORDER TIME IN GOOD FORMAT
+	line = "<div>" + time + "</div>";
+	if (type == DT_REG)
+	{
+		std::stringstream	ss;
+		ss << info.st_size;
+		size += ss.str() + "</div>";
+	}
+	else
+		size += "- </div>";
+	line += size;
+	return (line);
+}
+
+static std::string	addEnding( std::string const &name )
+{
+	std::string		ending;
+	size_t	const	space = 52;
+
+	if (name.size() > space)
+		ending = name.substr(0, space - 3) + "..></a> ";
+	else if (name == "..")
+		ending = name + "/" + "</a> ";
+	else
+		ending = name + std::string((space - name.size()), ' ') + "</a>" ;
+	return (ending);
+}
+
+std::string	HttpResponse::buildLine( std::string const &name, int const &type )
+{
+	std::string	line;
+	line = "\t\t\t<div id=\"anchors\">";
+	if (type == DT_DIR && name == "..")
+		line += "\t\t\t\t<a href=\"" + getPath() + "\" > " + addEnding(name); // change getPath for root ".."
+	else if (type == DT_DIR)
+		line += "\t\t\t\t<a href=\"" + getPath() + "/" + name + "\" > " + addEnding(name);
+	else if (type == DT_REG)
+		line += "\t\t\t\t<a href=\"" + getPath() + "/" + name + "\" > " + addEnding(name);
+	if (name != "..")
+		line += addTimeAndSize(type);
+	line += "</div>\n";
+	return (line);
+}
+
+std::string	HttpResponse::getDirectories(
+	std::map<std::string, int> const &directoryContent )
+{
+	std::string	line = "";
+	std::map<std::string, int>::const_iterator	it;
+
+	for (it = directoryContent.begin(); it != directoryContent.end(); it++)
+	{
+		if (it->second == DT_DIR)
+			line += buildLine(it->first, it->second);
+	}
+	return (line);
+}
+
+std::string	HttpResponse::getRegularFiles(
+	std::map<std::string, int> const &directoryContent )
+{
+	std::string	line = "";
+	std::map<std::string, int>::const_iterator	it;
+
+	for (it = directoryContent.begin(); it != directoryContent.end(); it++)
+	{
+		if (it->second == DT_REG)
+			line += buildLine(it->first, it->second);
+	}
+	return (line);
+}
+
+static	bool	getDirectoryContent(std::string const &filePath,
+	std::map<std::string, int> &directoryContent )
+{
+	dirent	*file;
+	DIR		*direc;
+
+	direc = opendir(filePath.c_str());
+	if (direc == NULL)
+	{
+		perror("opendir: ");
+		return (false);
+	}
+	while ((file = readdir(direc)) != NULL)
+	{
+		std::string	name(file->d_name);
+		if (name != ".")
+		{
+			if (file->d_type == DT_DIR)
+				directoryContent[name] = DT_DIR;
+			else if (file->d_type == DT_REG)
+				directoryContent[name] = DT_REG;
+		}
+	}
+	if (closedir(direc) == -1)
+	{
+		perror("closedir: ");
+		return (false);
+	}
+	return (true);
+}
+
+bool	HttpResponse::sendAutoIndex( void )
+{
+	std::string					body;
+	std::string					toSend;
+	std::map<std::string, int>	directoryContent;
+
+	if (!getDirectoryContent(getFilePath(), directoryContent))
+		throw (Webserv::NoException());
+	body = "<!DOCTYPE html>\n<html lang=\"en\">\n\t<head>\n\t\t<meta charset=\"UTF-8\">";
+	body += "<link rel=\"stylesheet\" href=\"/styles/autoindex.css\">";
+	body += "\n\t\t<title>Autoindex</title>\n\t</head>\n\t<body>\n";
+	body += "\t\t<h1>Index of " + getPath() + "</h1>\n\t\t<section id=\"secAuto\">\n";
+	body += getDirectories(directoryContent);
+	body += getRegularFiles(directoryContent);
+	body += "\t\t</section>\n\t</body>\n</html>";
+	setBodysize(body.size());
+	updateHeader();
+	toSend = getHeader().composeHeader() + "\n";
+	toSend += body;
+	std::cout << toSend << std::endl;
+	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
+	{
+		perror("send()");
+		return (false);
+	}
 	return (true);
 }
 
@@ -341,7 +458,7 @@ bool	HttpResponse::sendWithBody( void )
 	{
 		toSend += line + "\n";
 	}
-	std::cout << toSend << std::endl;
+	//std::cout << toSend << std::endl;
 	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
 	{
 		perror("send()");
@@ -357,7 +474,7 @@ bool	HttpResponse::sendCgiOutput( std::string const &output )
 	std::string	toSend = getHeader().composeCgiHeader();
 	toSend += "\n";
 	toSend += output;
-	std::cout << toSend << std::endl;
+	//std::cout << toSend << std::endl;
 	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
 	{
 		perror("send()");
@@ -388,7 +505,7 @@ void	HttpResponse::updateHeader( void )
 	{
 		std::stringstream	ss;
 		ss << getBodysize();
-		std::cout << "Content-Length: " << ss.str() << std::endl;
+		//std::cout << "Content-Length: " << ss.str() << std::endl;
 		getHeader().modifyHeadersMap("Content-Length: ", ss.str());
 	}
 	else

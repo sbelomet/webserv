@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 11:35:54 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/12 11:52:34 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/17 11:50:35 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ class Server
 		/* insert to containers methods */
 
 		void	pushSocket( int const &socket );
-		void	insertServer( int const &index, Config *&config );
+		void	insertServer( int const &index, Config *config );
 		void	pushServerAddr( sockaddr_in const &socket_address );
 		void	insertNewConnection( int const &newConnection, int const &index );
 
@@ -73,8 +73,8 @@ class Server
 
 		void	bindServers( void );
 		void	listeningServers( void );
-		void	createServer( Config *&config );
-		void	createSockets( Config *&config );
+		void	createServer( Config *config );
+		void	createSockets( Config *config );
 		int		newConnection( int const &eventFd );
 };
 

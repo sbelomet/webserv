@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 13:38:03 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/13 13:22:28 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/17 10:09:01 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,10 +146,7 @@ std::string const	HttpHeader::composeCgiHeader( void )
 		if ((it->first == "Location: " && it->second.empty())
 			|| it->first == "DEFAULT")
 			continue ;
-		if (it->first == "Content-Type: ")
-			toSend += it->first + it->second + "; charset=utf-8\n";
-		else
-			toSend += it->first + it->second + "\n";
+		toSend += it->first + it->second + "\n";
 	}
 	return (toSend);
 }

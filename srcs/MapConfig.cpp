@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 10:28:01 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/13 10:04:45 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/17 14:03:01 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ MapConfig::MapConfig( void )
 MapConfig::~MapConfig( void )
 {
 	std::map<std::string, Config *>::iterator it;
+	std::cout << "Deleting MapConfig" << std::endl;
 	for (it = getMapConfig().begin(); it != getMapConfig().end(); it++)
 	{
 		delete it->second;
@@ -248,11 +249,11 @@ void	MapConfig::fillLocations( Config *config )
 			if (!rootLocation->getRoot().empty())
 				(*it)->setRoot(rootLocation->getRoot());
 		}
-		if ((*it)->getIndex().empty())
-		{
-			if (!rootLocation->getIndex().empty())
-				(*it)->setIndex(rootLocation->getIndex());
-		}
+		//if ((*it)->getIndex().empty())
+		//{
+		//	if (!rootLocation->getIndex().empty())
+		//		(*it)->setIndex(rootLocation->getIndex());
+		//}
 		if ((*it)->getAlias().empty())
 		{
 			if (!rootLocation->getAlias().empty())

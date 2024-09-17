@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Manager.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 12:46:56 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/12 10:31:22 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/17 13:53:52 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 # include "CGI.hpp"
 # include "unistd.h"
+# include <signal.h>
 # include "Server.hpp"
 # include "Webserv.hpp"
 # include <sys/epoll.h>

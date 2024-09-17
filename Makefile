@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+         #
+#    By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/04/04 10:58:20 by sbelomet          #+#    #+#              #
-#    Updated: 2024/09/09 13:44:05 by lgosselk         ###   ########.fr        #
+#    Updated: 2024/09/17 14:26:48 by sbelomet         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@
 NAME		=	webserv
 CC			=	c++
 INCLUDES	=	-I includes
-CFLAGS		=	-Wall -Wextra -Werror -std=c++98
+CFLAGS		=	-Wall -Wextra -Werror -std=c++98 -g3
 OBJS_DIR	=	objs/
 SRCS_DIR	=	srcs/
 

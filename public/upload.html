@@ -5,6 +5,20 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Upload</title>
 	<style>
+		body {
+			height: 100vh;
+			margin: 0;
+			padding: 0;
+		}
+		.bg-img {
+			background-color: aquamarine;
+			height: 100vh;
+			margin: 0;
+			padding: 0;
+			position: fixed;
+			width: 100%;
+			z-index: -1;
+		}
 		.rec_center {
 			width: 60%;
 			margin: auto;
@@ -14,10 +28,18 @@
 			align-items: center;
 			justify-content: center;
 		}
-		section {
+		.home_butt {
 			text-align: center;
 			margin: 1rem;
-			font-size: larger;
+		}
+		section {
+			width: 65%;
+			margin: auto;
+			background: rgba(255, 255, 255, 0.8);
+			border-radius: 20px;
+			padding: 1rem;
+			text-align: center;
+			color: red;
 		}
 		.dlbutton:hover {
 			cursor: pointer;
@@ -27,9 +49,13 @@
 	</style>
 </head>
 <body>
+	<div class="bg-img"></div>
 	<header>
 		<div class="rec_center">
 			<h1>Upload & Download</h1>
+		</div>
+		<div class="home_butt">
+			<a href="../index.html"><button>Back to Home</button></a>
 		</div>
 	</header>
 	<section>
@@ -40,6 +66,15 @@
 				<input type="submit" value="Upload">
 			</form>
 		</article>
+		<br>
+		<article>
+			<h3>Send us a message</h3>
+			<form action="../cgi-bin/makefile.py" method="post">
+				<input type="text" name="message" id="message" value="i love feet" title="be nice!!">
+				<input type="submit" value="Upload">
+			</form>
+		</article>
+		<br>
 		<article>
 			<h3>Download a file</h3>
 			<div>
@@ -48,6 +83,7 @@
 					<img class="dlbutton" src="images/download.png" alt="download button">
 				</a>
 			</div>
+		</article>
 	</section>
 </body>
 </html>

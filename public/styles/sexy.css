@@ -1,0 +1,52 @@
+
+body {
+	height: 100vh;
+	margin: 0;
+	padding: 0;
+}
+.bg-img {
+	background-image: url('images/bg_img/goodimage_blurred.jpg');
+	background-size: cover;
+	height: 100vh;
+	margin: 0;
+	padding: 0;
+	position: fixed;
+	width: 100%;
+	z-index: -1;
+}
+.head_center {
+	width: 60%;
+	margin: auto;
+	background: rgba(255, 160, 128, 0.482);
+	border-radius: 20px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.home_butt {
+	text-align: center;
+	margin: 1rem;
+}
+.rec_center {
+	width: 60%;
+	margin: auto;
+	background: #edc7b8;
+	border-radius: 20px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+section {
+	width: 65%;
+	margin: auto;
+	background: rgba(255, 255, 255, 0.8);
+	border-radius: 20px;
+	padding: 1rem;
+	text-align: center;
+	color: red;
+}
+.dlbutton:hover {
+	cursor: pointer;
+	transform: scale(1.05);
+	transition: all .05s ease;
+}

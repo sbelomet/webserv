@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 10:43:51 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/13 13:55:45 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/16 13:30:31 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 # include <string.h>
 # include <unistd.h>
 # include <sys/wait.h>
+# include <sys/socket.h>
 # include <stdlib.h>
 # include <cstdio>
 # include <algorithm>
@@ -38,6 +39,7 @@ class CGI
 		CGI const &operator=(CGI const &copy);
 		void fillBinaries(const std::vector<std::string> &cgiPass);
 		std::string getBinary(std::string const &script);
+		void fillEnv(httpRequest const &request, std::string const &script);
 
 	public:
 		CGI();
@@ -46,8 +48,8 @@ class CGI
 		std::map<std::string, std::string> const &getEnv( void ) const;
 		std::string const &getOutput( void ) const;
 
-		void fillEnv(httpRequest const &request, std::string const &script, Location const *cgiLocation);
-		void executeCGI();
+		void setupCGI(httpRequest const &request, std::string const &script, Location const *cgiLocation);
+		void executeCGI(std::string const &body);
 };
 
 #endif

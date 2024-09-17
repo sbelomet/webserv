@@ -1,0 +1,21 @@
+* {
+    margin: 0;
+    box-sizing: border-box;
+}
+
+h1 {
+    margin: 1rem;
+    margin-left: 1rem;
+}
+
+#secAuto {
+    margin: 1rem;
+    text-align: justify;
+}
+
+#anchors {
+    width: 100%;
+    display: grid; 
+    font-size: 1.3rem;
+    grid-template-columns: 33% 33% 33%;
+}

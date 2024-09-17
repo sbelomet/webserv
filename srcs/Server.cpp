@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 11:36:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/12 13:38:02 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/17 11:50:22 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,7 @@ void	Server::pushSocket( int const &socket )
 	_sockets.push_back(socket);
 }
 
-void	Server::insertServer( int const &index, Config *&config )
+void	Server::insertServer( int const &index, Config *config )
 {
 	_servers[getSockets()[index]] = config;
 }
@@ -138,7 +138,7 @@ int	const	&Server::getIndexSocketFromNewConnections( int const &index )
 
 /*  */
 
-void	Server::createSockets( Config *&config )
+void	Server::createSockets( Config *config )
 {
 	// (IPv4, TCP type socket (two way byte stream), NULL)
 	int	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -151,7 +151,7 @@ void	Server::createSockets( Config *&config )
 	insertServer(socket_fd, config);
 }
 
-void	Server::createServer( Config *&config )
+void	Server::createServer( Config *config )
 {
 	std::string const	listen = config->getListen();
 	sockaddr_in	address = {}; // if not work use memset
