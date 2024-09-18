@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGI.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 10:43:51 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/16 13:30:31 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/18 10:44:16 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ class CGI
 		std::map<std::string, std::string> const &getEnv( void ) const;
 		std::string const &getOutput( void ) const;
 
-		void setupCGI(httpRequest const &request, std::string const &script, Location const *cgiLocation);
+		void setupCGI(httpRequest const &request, std::string const &script, Location const cgiLocation);
 		void executeCGI(std::string const &body);
 };
 

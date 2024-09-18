@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Webserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:12:17 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/17 11:18:03 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/18 14:03:30 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,11 +35,14 @@ bool	isSeparator( char c );
 bool	isWhitespace( char c );
 bool	isSeparatorNW( char c );
 size_t	fileSize( int const fd);
-size_t	fileSize( std::string const &file );
 void	strtolower(std::string &str);
+std::string	formatRoot( std::string root );
+size_t	fileSize( std::string const &file );
 bool	isDirectory( std::string const &path );
 bool	isRegularFile( std::string const &path );
 bool	onlyWhitespaces( const std::string &str );
+std::string	const concatenateRoot( std::string const &root,
+	std::string const &path );
 std::string	extractPathExtension( std::string const &path );
 std::vector<std::string>	vecSplit( std::string const &str, char delimiter );
 std::string::iterator findKeywordEnd(std::string::iterator it, std::string::iterator end);

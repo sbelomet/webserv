@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:36 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/17 11:50:26 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/18 15:29:35 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,14 +27,26 @@ HttpResponse const	&HttpResponse::operator=( HttpResponse const &copy )
 {
 	if (this != &copy)
 	{
-        setConfig(copy.getConfig());
         setHeader(copy.getHeader());
+		setFd(copy.getFd());
+		setIsOk(copy.getFd());
+		setHost(copy.getHost());
+		setPath(copy.getPath());
+		setIsCgi(copy.getIsCgi());
+		setMethod(copy.getMethod());
+		setToRedir(copy.getToRedir());
+		setFilePath(copy.getFilePath());
+		setMimeType(copy.getMimeType());
+		setBodysize(copy.getBodysize());
+		setAutoindex(copy.getAutoindex());
+		setRequestStatusCode(copy.getRequestStatusCode());
+		setMaxClientBodySize(copy.getMaxClientBodySize());
     }
 	return (*this);
 }
 
-HttpResponse::HttpResponse( Config *config, httpRequest const &request, int const &fd ):
-    _header(HttpHeader()), _config(config), _fd(fd), _isOk(true), _host(std::string()),
+HttpResponse::HttpResponse( httpRequest const &request, int const &fd ):
+    _header(HttpHeader()), _fd(fd), _isOk(true), _host(std::string()),
 	_path(request.getPath()), _isCgi(false), _method(request.getMethod()), _toRedir(false),
 	_filePath(std::string()), _mimeType("text/html"), _bodySize(0), _autoindex(false),
 	_requestStatusCode(request.getStatusCode()), _maxClientBodySize(1024 * 1024)
@@ -52,6 +64,11 @@ HttpResponse::HttpResponse( Config *config, httpRequest const &request, int cons
 HttpHeader &HttpResponse::getHeader( void )
 {
     return (_header);
+}
+
+void	HttpResponse::setFd( int const &fd )
+{
+	_fd = fd;
 }
 
 int const &HttpResponse::getFd( void ) const
@@ -82,11 +99,6 @@ bool const &HttpResponse::getAutoindex( void ) const
 size_t const &HttpResponse::getBodysize( void ) const
 {
 	return (_bodySize);
-}
-
-Config * const &HttpResponse::getConfig( void ) const
-{
-    return (_config);
 }
 
 std::string const &HttpResponse::getHost( void ) const
@@ -132,11 +144,6 @@ void	HttpResponse::setPath( std::string const &path )
 void	HttpResponse::setIsCgi( bool const &isCgi )
 {
 	_isCgi = isCgi;
-}
-
-void	HttpResponse::setConfig( Config * const &config )
-{
-	_config = config;
 }
 
 std::string const &HttpResponse::getFilePath( void ) const
@@ -199,26 +206,26 @@ void	HttpResponse::setMaxClientBodySize( size_t const &maxClientBodySize )
 	_maxClientBodySize = maxClientBodySize;
 }
 
-bool	HttpResponse::checkPath( Location *location,
+bool	HttpResponse::checkPath( Location location,
 	std::string const &rootPath )
 {
 	int	fd;
 	if (isDirectory(rootPath))
 	{
 		std::cout << "IS A DIRECTORY" << std::endl;
-		if (!location->getIndex().empty())
+		if (!location.getIndex().empty())
 		{
 			std::cout << "HAVE A INDEX" << std::endl;
-			setFilePath(rootPath + "/" + location->getIndex());
+			setFilePath(rootPath + "/" + location.getIndex());
 			return (true);
 		}
-		else if (!location->getReturn().path.empty())
+		else if (!location.getReturn().empty())
 		{
 			std::cout << "HAVE A RETURN" << std::endl;
 			setToRedir(true);
 			return (true);
 		}
-		else if (location->getAutoindex())
+		else if (location.getAutoindex())
 		{
 			setAutoindex(true);
 			setFilePath(rootPath);
@@ -238,32 +245,13 @@ bool	HttpResponse::checkPath( Location *location,
 	return (true);
 }
 
-static	std::string	formatRoot( std::string root )
-{
-	if (root == "./")
-		return (".");
-	if (root[0] == '.' || root[0] == '/')
-	{
-		if (root[0] == '.' && root[1] == '/')
-			root.erase(0, 2);
-		else if (root[0] == '/')
-			root.erase(0, 1);
-	}
-	if (root[(root.size() - 1)] == '/')
-		root.erase((root.size() - 1), 1);
-	root = "./" + root;
-	return (root);
-}
-
-std::string	const	HttpResponse::concatenateRoot( Location *location,
+std::string	const	HttpResponse::concatenateRoot( Location location,
 	std::string const &path )
 {
-	std::string	root;
-	if (location->getRoot().empty())
-		root = getConfig()->getRoot();
-	else
-		root = location->getRoot();
+	std::string	root = location.getRoot();
 	root = formatRoot(root);
+	if (root == ("." + path))
+		return (root);
 	if (root == ".")
 		return (root + path);
 	if (path == "/")
@@ -273,17 +261,14 @@ std::string	const	HttpResponse::concatenateRoot( Location *location,
 	return (root);
 }
 
-bool	HttpResponse::treatResponsePath( Location *location )
+bool	HttpResponse::treatResponsePath( Location location )
 {
 	if (!checkPath(location,
 		concatenateRoot(location, getPath())))
 		return (false);
 	if (getToRedir())
 	{
-		if (!location->getReturn().path.empty())
-			getHeader().modifyHeadersMap("Location: ", location->getReturn().path);
-		else
-			getHeader().modifyHeadersMap("Location: ", location->getIndex());
+		getHeader().modifyHeadersMap("Location: ", location.getReturn());
 		getHeader().updateStatus(301);
 		return (true);
 	}
@@ -294,13 +279,32 @@ bool	HttpResponse::treatResponsePath( Location *location )
 		setFilePath("./public/deleted.html");
 		return (true);
 	}
-	if (!location->getCgiPass().empty())
+	if (!location.getCgiPass().empty())
 	{
-		std::cout << "CGI" << std::endl;
 		setIsCgi(true);
 		return (true);
 	}
 	return (true);
+}
+
+static std::string	formatTime( std::string const &time )
+{
+	std::vector<std::string> const	timeParts = vecSplit(time, ':');
+	std::string	const				result = timeParts[0] + ":" + timeParts[1];
+	return (result);
+}
+
+static std::string	formatDate( std::string const &date )
+{
+	std::vector<std::string> const	dateParts = vecSplit(date, ' ');
+	if (dateParts.size() == 5)
+	{
+		std::string const	result = dateParts[2] + "-" + dateParts[1] + "-"
+		+ dateParts[4] + " " + formatTime(dateParts[3]);
+		return (result);
+	}
+	else
+		return (date);
 }
 
 std::string	HttpResponse::addTimeAndSize( int const &type )
@@ -313,7 +317,7 @@ std::string	HttpResponse::addTimeAndSize( int const &type )
 	stat(getFilePath().c_str(), &info);
 	time = ctime(&info.st_mtime);
 	time = time.substr(0, (time.size() - 1));
-	// SPLIT AND REORDER TIME IN GOOD FORMAT
+	time = formatDate(time);
 	line = "<div>" + time + "</div>";
 	if (type == DT_REG)
 	{
@@ -341,12 +345,19 @@ static std::string	addEnding( std::string const &name )
 	return (ending);
 }
 
+/*static	std::string	backwardRoot( std::string const &root )
+{
+	std::string	result = root.substr(0, (root.size() - 1));
+	result = "/" + result;
+	return (result);
+}*/
+
 std::string	HttpResponse::buildLine( std::string const &name, int const &type )
 {
 	std::string	line;
 	line = "\t\t\t<div id=\"anchors\">";
 	if (type == DT_DIR && name == "..")
-		line += "\t\t\t\t<a href=\"" + getPath() + "\" > " + addEnding(name); // change getPath for root ".."
+		line += "\t\t\t\t<a href=\"" + getPath() + "\" > " + addEnding(name); // TO DO getConfig -> backwardRoot(getConfig().getSingleLocation(getPath())->getRoot())
 	else if (type == DT_DIR)
 		line += "\t\t\t\t<a href=\"" + getPath() + "/" + name + "\" > " + addEnding(name);
 	else if (type == DT_REG)

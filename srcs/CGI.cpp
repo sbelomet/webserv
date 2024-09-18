@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 10:43:35 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/17 15:12:51 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/18 15:52:58 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,15 +106,9 @@ void CGI::fillEnv(httpRequest const &request, std::string const &script)
  * Fills and allocates the nessessary variables for the CGI execution
  * !!! Check status code after !!!
  */
-void CGI::setupCGI(httpRequest const &request, std::string const &script, Location const *cgiLocation)
-{
-	if (cgiLocation == NULL)
-	{
-		_env["REDIRECT_STATUS"] = "404";
-		return ;
-	}
-	
-	fillBinaries(cgiLocation->getCgiPass());
+void CGI::setupCGI(httpRequest const &request, std::string const &script, Location const cgiLocation)
+{	
+	fillBinaries(cgiLocation.getCgiPass());
 	
 /* 	for (std::map<std::string, std::string>::iterator it = _binaries.begin(); it != _binaries.end(); it++)
 	{
@@ -179,7 +173,7 @@ void CGI::executeCGI(std::string const &body)
 		if (execPID == -1)
 		{
 			perror("fork()");
-			exit(1);
+			throw (Webserv::NoException());
 		}
 		else if (execPID == 0)
 		{
@@ -198,33 +192,40 @@ void CGI::executeCGI(std::string const &body)
 				perror("dup2()");
 				exit(1);
 			}
+			close(bodyfd);
+			close(tmpfd);
 			execve(_argv[0], _argv, _malloc_env);
 			perror("execve()");
-			exit(1);
+			throw (Webserv::NoException());
 		}
 		pid_t timerPID = fork();
 		if (timerPID == -1)
 		{
 			perror("fork()");
-			exit(1);
+			throw (Webserv::NoException());
 		}
 		else if (timerPID == 0)
 		{
 			sleep(CGITIMEOUT);
-			exit(1);
+			throw (Webserv::NoException());
 		}
 		pid_t killerPID = wait(NULL);
 		if (killerPID == execPID)
 		{
+			fclose(tmpfile);
+			fclose(bodyfile);
 			kill(timerPID, SIGKILL);
 		}
 		else
 		{
+			fclose(tmpfile);
+			fclose(bodyfile);
 			kill(execPID, SIGKILL);
 			write(tmpfd, "TIMEOUT - Something went wrong with the CGI script", 50);
 		}
 		wait(NULL);
-		exit(0);
+		close(tmpfd);
+		throw (Webserv::NoException());
 
 	}
 	else
@@ -240,5 +241,8 @@ void CGI::executeCGI(std::string const &body)
 			break;
 		_output += buffer;
 	}
+	close(bodyfd);
 	close(tmpfd);
+	fclose(bodyfile);
+	fclose(tmpfile);
 }

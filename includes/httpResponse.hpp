@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpResponse.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:20 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/17 11:50:28 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/18 11:48:21 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,12 +19,10 @@
 # include <iostream>
 # include <unistd.h>
 # include <dirent.h>
-# include "Config.hpp"
 
 # include "httpHeader.hpp"
 # include "httpRequest.hpp"
 
-class Config;
 class HttpHeader;
 class HttpRequest;
 
@@ -32,7 +30,6 @@ class HttpResponse
 {
 	private:
 		HttpHeader	_header;
-		Config		*_config;
 
 		int			_fd; // file descriptor to send response
 		bool		_isOk; // bool to know is response is 200
@@ -53,12 +50,12 @@ class HttpResponse
 		HttpResponse const &operator=( HttpResponse const &copy );
 	public:
 		~HttpResponse( void );
-		HttpResponse( Config *config, httpRequest const &request,
-			int const &fd );
+		HttpResponse(httpRequest const &request, int const &fd );
 
 		/* getters - setters */
 
-		int const &getFd( void ) const;
+		int const	&getFd( void ) const;
+		void		setFd( int const &fd );
 
 		bool const &getIsOk( void ) const;
 		void	setIsOk( bool const &path );
@@ -74,9 +71,6 @@ class HttpResponse
 
 		std::string const &getPath( void ) const;
 		void	setPath( std::string const &path );
-
-		Config * const &getConfig( void ) const;
-		void	setConfig( Config * const &config );
 
 		bool const &getAutoindex( void ) const;
 		void	setAutoindex( bool const &autoindex );
@@ -109,19 +103,18 @@ class HttpResponse
 		bool	sendWithBody( void );
 
 		bool	sendAutoIndex( void );
-		bool	checkPath( Location *location,
+		bool	checkPath( Location location,
 			std::string const &rootPath );
 		std::string	addTimeAndSize( int const &type );
-		bool	treatResponsePath( Location *location );
+		bool	treatResponsePath( Location location );
 		std::string	getDirectories( std::map<std::string,
 			int> const &directoryContent );
 		std::string	getRegularFiles( std::map<std::string,
 			int> const &directoryContent);
 		bool	sendCgiOutput( std::string const &output );
-		std::string	const	concatenateRoot( Location *location,
+		std::string	const	concatenateRoot( Location location,
 			std::string const &path );
 		std::string	buildLine( std::string const &name, int const &type );
-
 };
 
 #endif

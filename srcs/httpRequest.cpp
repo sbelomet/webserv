@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 10:31:17 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/11 13:48:10 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/18 11:05:14 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,7 +165,19 @@ int	httpRequest::checkBody( std::string::iterator &it, std::string::iterator req
 		return 1;
 	}
 	it = end + 2;
-	_body = std::string(it, reqEnd);
+	std::string tmp(it, reqEnd);
+	if (_headers.find("content-type") != _headers.end() && _headers["content-type"].find("boundary=") != std::string::npos)
+	{
+		std::string boundary = _headers["content-type"].substr(_headers["content-type"].find("boundary=") + 9);
+		boundary += "--";
+		std::string::size_type pos = tmp.find(boundary);
+		if (pos == std::string::npos)
+		{
+			_status_code = 413;
+			return 1;
+		}
+	}
+	_body = tmp;
 	return 0;
 }
 

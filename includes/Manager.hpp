@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Manager.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 12:46:56 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/17 13:53:52 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/18 13:39:05 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,12 +34,14 @@ class Manager
 
 		bool	epollWaiting( Server &server );
 		void	epollStarting( Server &server );
+		void	manageResponse( httpRequest const &request,
+			HttpResponse &response, Config &config );	
 		void	readRequest( Server &server, int const &fd );
 		bool	acceptConnection( Server &server, int const &index );
+		void	sendingError( HttpResponse &response, Config &config,
+			std::string const &statusCode );
 		void	waitingForResponse( Server &server, httpRequest const &request,
 			int const &fd );
-		void	manageResponse( httpRequest const &request,
-			HttpResponse &response );
 	public:
 		Manager();
 		~Manager();
@@ -50,7 +52,7 @@ class Manager
 
 		/* Methods */
 
-		void	makeAll( Server &server, std::string const &filepath );
+		void	makeAll( std::string const &filepath );
 };
 
 #endif

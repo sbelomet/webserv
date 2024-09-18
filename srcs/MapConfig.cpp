@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 10:28:01 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/17 14:03:01 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/18 14:45:49 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,12 +17,12 @@ MapConfig::MapConfig( void )
 
 MapConfig::~MapConfig( void )
 {
-	std::map<std::string, Config *>::iterator it;
-	std::cout << "Deleting MapConfig" << std::endl;
-	for (it = getMapConfig().begin(); it != getMapConfig().end(); it++)
-	{
-		delete it->second;
-	}
+	//std::map<std::string, Config *>::iterator it;
+	//std::cout << "delete configs" << std::endl;
+	//for (it = getMapConfig().begin(); it != getMapConfig().end(); it++)
+	//{
+	//	delete it->second;
+	//}
 }
 
 MapConfig::MapConfig( MapConfig const &copy )
@@ -33,13 +33,13 @@ MapConfig::MapConfig( MapConfig const &copy )
 MapConfig const	&MapConfig::operator=( MapConfig const &copy )
 {
 	if (this != &copy)
-		this->setMapConfig(copy.getMapConfig());
+	{}
 	return (*this);
 }
 
 /* */
 
-std::map<std::string, Config *>  &MapConfig::getMapConfig( void )
+/*std::map<std::string, Config *>  &MapConfig::getMapConfig( void )
 {
 	return (this->_map_config);
 }
@@ -62,24 +62,28 @@ void	MapConfig::insertConfig(std::string const &key, Config *config)
 Config	*MapConfig::getConfigFromMap(std::string const &key)
 {
 	return (this->_map_config[key]);
-}
+}*/
 
 /*  */
 
 void	MapConfig::makeAll( Server &server, std::string const &filepath )
 {
-	mappingConfigs(filepath);
-	std::map<std::string, Config *>::iterator it;
-	for (it = getMapConfig().begin(); it != getMapConfig().end(); it++)
+	std::vector<Config> configs = mappingConfigs(filepath);
+	Config	config = configs[0];
+	std::cout << "config: " << config.getIndex() << " " << config.getListen() << " " << config.getRoot() << std::endl;
+	Location loc = config.getLocations()[0];
+	std::cout << "methods for location -> " << loc.getMaxClientBody() << " " << loc.getGet() << " " << loc.getPost() << " " << loc.getRemove() << std::endl;
+	if (configs.empty())
+		throw (Webserv::NoException());
+	std::cout << "configs ready" << std::endl;
+	for (size_t i = 0; i < configs.size(); i++)
 	{
-		server.createSockets(it->second);
+		server.createSockets(configs[i]);
+		std::cout << "create socket" << std::endl;
+		server.createServer(configs[i]);
+		std::cout << "create server" << std::endl;
 	}
-	std::cout << GREEN << "Sockets successfully created" << RESET << std::endl;
-	for (it = getMapConfig().begin(); it != getMapConfig().end(); it++)
-	{
-		server.createServer(it->second);
-	}
-	std::cout << GREEN << "Server addresses successfully created" << RESET << std::endl;
+	std::cout << GREEN << "Sockets and Servers successfully created" << RESET << std::endl;
 	server.bindServers();
 	server.listeningServers();
 }
@@ -87,8 +91,9 @@ void	MapConfig::makeAll( Server &server, std::string const &filepath )
 /**
  * Parse the configuration file to create the server objects, further parsing is done in Config::makeConfig
  */
-void	MapConfig::mappingConfigs( std::string const &filepath )
+std::vector<Config>	MapConfig::mappingConfigs( std::string const &filepath )
 {
+	std::vector<Config>	configs;
 	std::ifstream   infile(filepath.c_str());
 	if (!infile.is_open())
 		throw (Webserv::FileException());
@@ -100,7 +105,7 @@ void	MapConfig::mappingConfigs( std::string const &filepath )
 
 	std::string	line;
 	int			lineCount = 0;
-	int			serverCount = 0;
+	//int			serverCount = 0;
 	while (std::getline(infile, line))
 	{
 		lineCount++; // increment line count
@@ -145,16 +150,16 @@ void	MapConfig::mappingConfigs( std::string const &filepath )
 			}
 			else
 			{
-				Config	*config = new Config();
+				Config	config;
 				while (it != line.end() && isWhitespace(*it))		// skip whitespaces
 					it++;
 				if (it == line.end())
 				{
-						config->makeConfig(infile, lineCount, true);	// if no parenthesis, await for it
+					config.makeConfig(infile, lineCount, true);	// if no parenthesis, await for it
 				}
 				else if (*it == '{')
 				{
-						config->makeConfig(infile, lineCount, false);	// if parenthesis, do not await for it
+					config.makeConfig(infile, lineCount, false);	// if parenthesis, do not await for it
 				}
 				else	// no non-whitespace characters between server keyword and parenthesis
 				{
@@ -162,52 +167,55 @@ void	MapConfig::mappingConfigs( std::string const &filepath )
 					throw Webserv::NoException();
 				}
 				checkValidConfig(config);
-				serverCount++;
-				std::string key = "server";
-				std::ostringstream oss;
-				oss << serverCount;
-				key += oss.str();
-				insertConfig(key, config);
+				//serverCount++;
+				//std::string key = "server";
+				//std::ostringstream oss;
+				//oss << serverCount;
+				//key += oss.str();
+				//insertConfig(key, config);
+				configs.push_back(config);
+				std::cout << config << std::endl;
+				return (configs);
 			}
-
 			if (it == line.end())
 				break;
 		}
 	}
 	infile.close();
+	return (configs);
 }
 
 /**
  * Check if the configuration is valid
  */
-void	MapConfig::checkValidConfig( Config *config )
+void	MapConfig::checkValidConfig( Config &config )
 {
-	if (config->getRoot().empty())
+	if (config.getRoot().empty())
 	{
 		std::cerr << "ERROR: root value is missing" << std::endl;
 		throw Webserv::NoException();
 	}
-	if (config->getHost().empty())
+	if (config.getHost().empty())
 	{
 		std::cerr << "ERROR: host value is missing" << std::endl;
 		throw Webserv::NoException();
 	}
-	if (config->getIndex().empty())
+	if (config.getIndex().empty())
 	{
 		std::cerr << "ERROR: index value is missing" << std::endl;
 		throw Webserv::NoException();
 	}
-	if (config->getListen().empty())
+	if (config.getListen().empty())
 	{
 		std::cerr << "ERROR: listen value is missing" << std::endl;
 		throw Webserv::NoException();
 	}
-	if (config->getLocations().empty())
+	if (config.getLocations().empty())
 	{
 		std::cerr << "ERROR: root location is missing" << std::endl;
 		throw Webserv::NoException();
 	}
-	if (config->getHasRootLocation() == false)
+	if (config.getHasRootLocation() == false)
 	{
 		std::cerr << "ERROR: root location is missing" << std::endl;
 		throw Webserv::NoException();
@@ -218,76 +226,71 @@ void	MapConfig::checkValidConfig( Config *config )
 /**
  * Fill in missing values in the location block if possible
  */
-void	MapConfig::fillLocations( Config *config )
+void	MapConfig::fillLocations( Config &config )
 {
-	std::vector<Location *> locations = config->getLocations();
-	Location *rootLocation = NULL;
+	size_t rootLocationIndex;
 
 	// find the root location and fill in missing values
-	for (std::vector<Location *>::iterator it = locations.begin(); it != locations.end(); it++)
+	for (size_t i = 0; i < config.getLocations().size(); i++)
 	{
-		if ((*it)->getLocation() == "/")
+		if (config.getLocations()[i].getLocation() == "/")
 		{
-			rootLocation = *it;
-			if (rootLocation->getMaxClientBody() == 1)
-				rootLocation->setMaxClientBody(config->getMaxClientBody());
-			if (rootLocation->getRoot().empty())
-				rootLocation->setRoot(config->getRoot());
-			if (rootLocation->getIndex().empty())
-				rootLocation->setIndex(config->getIndex());
+			rootLocationIndex = i;
+			if (config.getLocations()[i].getMaxClientBody() == 1)
+				config.getLocations()[i].setMaxClientBody(config.getMaxClientBody());
+			if (config.getLocations()[i].getRoot().empty())
+				config.getLocations()[i].setRoot(config.getRoot());
+			if (config.getLocations()[i].getIndex().empty())
+				config.getLocations()[i].setIndex(config.getIndex());
 			break;
 		}
 	}
 
 	// fill in missing values in the other locations
-	for (std::vector<Location *>::iterator it = locations.begin(); it != locations.end(); it++)
+	for (size_t i = 0; i < config.getLocations().size(); i++)
 	{
-		if ((*it)->getLocation() == "/")
+		if (config.getLocations()[i].getLocation() == "/")
 			continue;
-		if ((*it)->getRoot().empty())
+		if (config.getLocations()[i].getRoot().empty())
 		{
-			if (!rootLocation->getRoot().empty())
-				(*it)->setRoot(rootLocation->getRoot());
+			if (!config.getLocations()[rootLocationIndex].getRoot().empty())
+				config.getLocations()[i].setRoot(config.getLocations()[rootLocationIndex].getRoot());
 		}
-		//if ((*it)->getIndex().empty())
-		//{
-		//	if (!rootLocation->getIndex().empty())
-		//		(*it)->setIndex(rootLocation->getIndex());
-		//}
-		if ((*it)->getAlias().empty())
+		if (config.getLocations()[i].getAlias().empty())
 		{
-			if (!rootLocation->getAlias().empty())
-				(*it)->setAlias(rootLocation->getAlias());
+			if (!config.getLocations()[rootLocationIndex].getAlias().empty())
+				config.getLocations()[i].setAlias(config.getLocations()[rootLocationIndex].getAlias());
 		}
-		if ((*it)->getAutoindexSet() == false)
+		if (config.getLocations()[i].getAutoindexSet() == false)
 		{
-			if (rootLocation->getAutoindexSet() == true)
-				(*it)->setAutoindex(rootLocation->getAutoindex());
+			if (config.getLocations()[rootLocationIndex].getAutoindexSet() == true)
+				config.getLocations()[i].setAutoindex(config.getLocations()[rootLocationIndex].getAutoindex());
 		}
-		if ((*it)->getCgiPass().empty())
+		if (config.getLocations()[i].getCgiPass().empty())
 		{
-			if (!rootLocation->getCgiPass().empty())
-				(*it)->setCgiPass(rootLocation->getCgiPass());
+			if (!config.getLocations()[rootLocationIndex].getCgiPass().empty())
+				config.getLocations()[i].setCgiPass(config.getLocations()[rootLocationIndex].getCgiPass());
 		}
-		if ((*it)->getReturn().path.empty())
+		if (config.getLocations()[i].getReturn().empty())
 		{
-			if (!rootLocation->getReturn().path.empty())
-				(*it)->setReturn(rootLocation->getReturn());
+			if (!config.getLocations()[rootLocationIndex].getReturn().empty())
+				config.getLocations()[i].setReturn(config.getLocations()[rootLocationIndex].getReturn());
 		}
-		if ((*it)->getAllowedMethods().var_set == false)
+		if (!config.getLocations()[i].getGet() && !config.getLocations()[i].getPost() && !config.getLocations()[i].getRemove())
 		{
-			if (rootLocation->getAllowedMethods().var_set == true)
-				(*it)->setAllowedMethods(rootLocation->getAllowedMethods());
+			config.getLocations()[i].setGet(config.getLocations()[rootLocationIndex].getGet());
+			config.getLocations()[i].setPost(config.getLocations()[rootLocationIndex].getPost());
+			config.getLocations()[i].setRemove(config.getLocations()[rootLocationIndex].getRemove());
 		}
-		if ((*it)->getMaxClientBody() == 1)
+		if (config.getLocations()[i].getMaxClientBody() == 1)
 		{
-			if (rootLocation->getMaxClientBody() != 1)
-				(*it)->setMaxClientBody(rootLocation->getMaxClientBody());
+			if (config.getLocations()[rootLocationIndex].getMaxClientBody() != 1)
+				config.getLocations()[i].setMaxClientBody(config.getLocations()[rootLocationIndex].getMaxClientBody());
 		}
 	}
 }
 
-std::ostream &operator<<(std::ostream &out, MapConfig &obj)
+/*std::ostream &operator<<(std::ostream &out, MapConfig &obj)
 {
 	for (std::map<std::string, Config *>::iterator it = obj.getMapConfig().begin(); it != obj.getMapConfig().end(); it++)
 	{
@@ -328,4 +331,4 @@ std::ostream &operator<<(std::ostream &out, MapConfig &obj)
 		out << MAGENTA << "}" << RESET << std::endl;
 	}
 	return (out);
-}
+}*/

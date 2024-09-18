@@ -1,8 +1,7 @@
 import cgi
 import os
 
-#!/usr/bin/env python3
-
+SIZE_LIMIT = 40000
 
 # Set the upload directory
 UPLOAD_DIR = "uploads/"
@@ -22,7 +21,7 @@ if file.filename:
 	filename = os.path.join(UPLOAD_DIR, file.filename)
 
 	# Check file size
-	if int(os.environ['CONTENT_LENGTH']) < 50000:
+	if int(os.environ['CONTENT_LENGTH']) < SIZE_LIMIT:
 		# Save the file to the upload directory
 		with open(filename, "wb") as f:
 			f.write(file.file.read())
@@ -31,6 +30,6 @@ if file.filename:
 		print("File uploaded successfully.")
 
 	else:
-		print(f"File size ({os.environ['CONTENT_LENGTH']} bytes) exceeds the limit (50000 bytes)")
+		print(f"File size ({os.environ['CONTENT_LENGTH']} bytes) exceeds the limit ({SIZE_LIMIT} bytes)")
 else:
 	print("No file selected.")

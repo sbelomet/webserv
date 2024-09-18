@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 11:36:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/17 11:50:22 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/18 11:51:03 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,12 +57,12 @@ void Server::setSockets(std::vector<int> const &sockets)
 	_sockets = sockets;
 }
 
-std::map<int, Config *> const &Server::getServers(void) const
+std::map<int, Config> const &Server::getServers(void) const
 {
 	return (_servers);
 }
 
-void Server::setServers(std::map<int, Config *> const &servers)
+void Server::setServers(std::map<int, Config> const &servers)
 {
 	_servers = servers;
 }
@@ -94,7 +94,7 @@ void	Server::pushSocket( int const &socket )
 	_sockets.push_back(socket);
 }
 
-void	Server::insertServer( int const &index, Config *config )
+void	Server::insertServer( int const &index, Config const &config )
 {
 	_servers[getSockets()[index]] = config;
 }
@@ -111,12 +111,12 @@ void	Server::insertNewConnection( int const &newConnection, int const &index )
 
 /*  */
 
-std::map<int, Config *>	&Server::getServersMap( void )
+std::map<int, Config>	&Server::getServersMap( void )
 {
 	return (_servers);
 }
 
-Config	*&Server::getConfigFromServer( int const &index )
+Config	const &Server::getConfigFromServer( int const &index )
 {
 	return (_servers[index]);
 }
@@ -138,7 +138,7 @@ int	const	&Server::getIndexSocketFromNewConnections( int const &index )
 
 /*  */
 
-void	Server::createSockets( Config *config )
+void	Server::createSockets( Config config )
 {
 	// (IPv4, TCP type socket (two way byte stream), NULL)
 	int	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -151,16 +151,16 @@ void	Server::createSockets( Config *config )
 	insertServer(socket_fd, config);
 }
 
-void	Server::createServer( Config *config )
+void	Server::createServer( Config config )
 {
-	std::string const	listen = config->getListen();
-	sockaddr_in	address = {}; // if not work use memset
+	std::string const	listen = config.getListen();
+	sockaddr_in	address = {};
 	address.sin_family = AF_INET;
-	if (!config->getHost().compare("localhost"))
+	if (!config.getHost().compare("localhost"))
 		address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	else
 	{
-		if (inet_pton(AF_INET, config->getHost().c_str(), &address.sin_addr) <= 0)
+		if (inet_pton(AF_INET, config.getHost().c_str(), &address.sin_addr) <= 0)
 			throw (Webserv::InetPtonException());
 	}
 	address.sin_port = htons(std::atoi(listen.c_str()));

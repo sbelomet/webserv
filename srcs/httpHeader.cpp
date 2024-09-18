@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpHeader.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 13:38:03 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/17 10:09:01 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/18 13:26:24 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,7 +128,8 @@ std::string const	HttpHeader::composeHeader( void )
 	for (it = getHeaders().begin(); it != getHeaders().end(); it++)
 	{
 		if ((it->first == "Location: " && it->second.empty())
-			|| it->first == "DEFAULT")
+			|| it->first == "DEFAULT" ||
+			(it->first == "Content-Length: " && it->second == "0"))
 			continue ;
 		toSend += it->first + it->second + "\n";
 	}
@@ -167,14 +168,6 @@ void	HttpHeader::updateStatus( short const &statusCode )
 			setStatusCode("301");
 			setInfoStatusCode("Moved Permanently");
 			break;
-		case 302:
-			setStatusCode("302");
-			setInfoStatusCode("Found");
-			break;
-		case 307:
-			setStatusCode("307");
-			setInfoStatusCode("Temporary Redirect");
-			break;
 		case 400:
 			setStatusCode("400");
 			setInfoStatusCode("Bad Request");
@@ -206,10 +199,6 @@ void	HttpHeader::updateStatus( short const &statusCode )
 		case 500:
 			setStatusCode("500");
 			setInfoStatusCode("Internal Server Error");
-			break;
-		case 501:
-			setStatusCode("501");
-			setInfoStatusCode("Not Implemented");
 			break;
 		default:
 			break;

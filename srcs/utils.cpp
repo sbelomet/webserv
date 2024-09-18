@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/21 10:32:48 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/12 10:14:32 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/18 14:04:40 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,6 +119,38 @@ size_t	fileSize( std::string const &file )
 
 	stat(file.c_str(), &info);
 	return (info.st_size);
+}
+
+std::string	formatRoot( std::string root )
+{
+	if (root == "./")
+		return (".");
+	if (root[0] == '.' || root[0] == '/')
+	{
+		if (root[0] == '.' && root[1] == '/')
+			root.erase(0, 2);
+		else if (root[0] == '/')
+			root.erase(0, 1);
+	}
+	if (root[(root.size() - 1)] == '/')
+		root.erase((root.size() - 1), 1);
+	root = "./" + root;
+	return (root);
+}
+
+std::string	const concatenateRoot( std::string const &root,
+	std::string const &path )
+{
+	std::string	newRoot = formatRoot(root);
+	if (newRoot == ("." + path))
+		return (newRoot);
+	if (newRoot == ".")
+		return (newRoot + path);
+	if (path == "/")
+		return (newRoot);
+	if (path != "/")
+		return (newRoot + path);
+	return (newRoot);
 }
 
 /**

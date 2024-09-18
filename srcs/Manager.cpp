@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 13:34:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/17 15:30:57 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/18 15:29:47 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,9 @@ Manager::Manager( void )
 {}
 
 Manager::~Manager( void )
-{}
+{
+	std::cout << "Manager destroyed" << std::endl;
+}
 
 Manager::Manager( Manager const &copy )
 {
@@ -134,18 +136,21 @@ void	Manager::epollStarting( Server &server )
 }
 
 void	Manager::manageResponse( httpRequest const &request,
-	HttpResponse &response )
+	HttpResponse &response, Config &config )
 {
-	if (response.getRequestStatusCode() == 400 || response.getRequestStatusCode() == 404)
+	if (response.getRequestStatusCode() == 400 || response.getRequestStatusCode() == 404 || response.getRequestStatusCode() == 413)
 		return (response.getHeader().updateStatus(response.getRequestStatusCode()));
-	Location	*location = response.getConfig()->getSingleLocation(response.getPath());
-	if (location == NULL)
+	std::cout << "1" << std::endl;
+	Location	location = config.getSingleLocation(response.getPath());
+	if (location.getLocation() == "DEFAULT")
 		return (response.getHeader().updateStatus(404));
-	if (!location->isAllowedMethod(response.getMethod()))
+	std::cout << "2" << std::endl;
+	if (!location.isAllowedMethod(response.getMethod()))
 		return (response.getHeader().updateStatus(405));
+	std::cout << "3" << std::endl;
 	if (!request.getBody().empty())
 	{
-		size_t	clientMaxBodySize = location->getMaxClientBody();
+		size_t	clientMaxBodySize = location.getMaxClientBody();
 		if (clientMaxBodySize > 1)
 			clientMaxBodySize = clientMaxBodySize * 1024;
 		else
@@ -156,6 +161,7 @@ void	Manager::manageResponse( httpRequest const &request,
 			return (response.getHeader().updateStatus(413));
 		response.setMaxClientBodySize(clientMaxBodySize);
 	}
+	std::cout << "4" << std::endl;
 	if (response.treatResponsePath(location))
 	{
 		Mime	mime;
@@ -188,6 +194,7 @@ void	Manager::manageResponse( httpRequest const &request,
 			if (env["REDIRECT_STATUS"] != "200")
 				return (response.getHeader().updateStatus(atoi(env["REDIRECT_STATUS"].c_str())));
 
+			std::cout << "FUCK MEEEEE" << std::endl;
 			cgi.executeCGI(request.getBody());
 			env = cgi.getEnv();
 			if (env["REDIRECT_STATUS"] != "200")
@@ -213,19 +220,55 @@ void	Manager::manageResponse( httpRequest const &request,
 	}
 }
 
+void	Manager::sendingError( HttpResponse &response, Config &config,
+	std::string const &statusCode )
+{
+	short				code;
+	std::string			location;
+	std::stringstream	ss(statusCode);
+	
+	ss >> code;
+	response.getHeader().updateStatus(301);
+	std::map<short, std::string>	errorPages = config.getErrorPages();
+	std::map<short, std::string>::const_iterator	it = errorPages.find(code);
+	if (it == errorPages.end())
+		location = "/error_pages/" + statusCode + ".html";
+	else
+	{
+		int	fd;
+		location = it->second;
+		std::string const	toTest = concatenateRoot(config.getRoot(), location);
+		if ((fd = open(toTest.c_str(), O_RDWR)) == -1)
+		{
+			close(fd);
+			response.getHeader().modifyHeadersMap("Location: ",
+				"/error_pages/404.html");
+		}
+		else
+		{
+			close(fd);
+			response.getHeader().modifyHeadersMap("Location: ",
+				location);
+		}
+	}
+	response.updateHeader();
+	if (!response.sendHeader())
+		throw (Webserv::NoException());
+}
+
 void	Manager::waitingForResponse( Server &server, httpRequest const &request,
 	int const &fd )
 {
 	int	const	socketIndex = server.getIndexSocketFromNewConnections(fd);
-	HttpResponse	response(server.getConfigFromServer(server.getSockets()[server.getSocketFromSockets(socketIndex)]),
-		request, fd);
+	Config	config = server.getConfigFromServer(server.getSockets()[server.getSocketFromSockets(socketIndex)]);
+	HttpResponse	response(request, fd);
 
-	manageResponse(request, response);
+	manageResponse(request, response, config);
 	std::string const	statusCode = response.getHeader().getStatusCode();
-	if (statusCode != "200")
+	if (statusCode != "200" || statusCode != "301")
 	{
-		std::cout << "WAITING FOR RESPONSE status code: " << statusCode << std::endl;
-		//response.getHeader().modifyValuePair("Content-Type: ", "text/html");
+		sendingError( response, config, statusCode );
+		std::cout << "DONE with status code: " << statusCode << std::endl;
 	}
 	else
 	{
@@ -262,16 +305,17 @@ void	Manager::readRequest( Server &server, int const &fd )
 		return ;
 	}
 	buff[read_bytes] = '\0';
+	// std::cout << "READ: " << buff << std::endl;
 	request.parseRequest(buff, read_bytes);
 	std::cout << request << std::endl;
 	waitingForResponse(server, request, fd);
 	//int const		socketIndex = server.getIndexSocketFromNewConnections(fd);
 }
 
-void	Manager::makeAll( Server &server, std::string const &filepath )
+void	Manager::makeAll( std::string const &filepath )
 {
+	Server	server;
 	getMapConfig().makeAll(server, filepath);
-	//std::cout << _map_config << std::endl;
 	epollStarting(server);
 	while (epollWaiting(server) != false)
 		;

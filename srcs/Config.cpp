@@ -6,32 +6,25 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:09 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/17 14:04:31 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/18 15:15:22 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
 
 Config::Config( void ) : _root(std::string()), _host(std::string()), _index(std::string()),
-	_listen(std::string()), _has_root_location(false), _client_max_body_size(1)
+	_listen(std::string()), _locationCount(-1), _has_root_location(false), _client_max_body_size(1)
 {}
 
 Config::~Config( void )
-{
-	std::cout << "Config destructor called" << std::endl;
-	std::vector<Location *> locations = getLocations();
-	for (size_t i = 0; i < locations.size(); i++)
-	{
-		delete locations[i];
-	}
-}
+{}
 
 Config::Config( Config const &copy )
 {
 	*this = copy;
 }
 
-Config const    &Config::operator=( Config const &copy )
+Config const	&Config::operator=( Config const &copy )
 {
 	if (this != &copy)
 	{
@@ -54,8 +47,9 @@ std::string const	&Config::getHost( void ) const { return (_host); }
 std::string const	&Config::getIndex( void ) const { return (_index); }
 std::string const	&Config::getListen( void ) const { return (_listen); }
 bool const	&Config::getHasRootLocation( void ) const { return (_has_root_location); }
-std::vector<Location *> const	&Config::getLocations( void ) const { return (_locations); }
-unsigned long const	&Config::getMaxClientBody( void ) const { return (_client_max_body_size); }
+std::vector<Location> const	&Config::getLocations( void ) const { return (_locations); }
+std::vector<Location>	&Config::getLocations( void ) { return (_locations); }
+size_t const	&Config::getMaxClientBody( void ) const { return (_client_max_body_size); }
 std::vector<std::string> const	&Config::getServerName( void ) const { return (_server_name); }
 std::map<short, std::string> const	&Config::getErrorPages( void ) const { return (_error_pages); }
 
@@ -65,14 +59,14 @@ void	Config::setRoot( std::string const &root ) { _root = root; }
 void	Config::setHost( std::string const &host ) { _host = host; }
 void	Config::setIndex( std::string const &index ) { _index = index; }
 void	Config::setListen( std::string const &listen ) { _listen = listen; }
-void	Config::setLocations( std::vector<Location *> const &locations ) { _locations = locations; }
+void	Config::setLocations( std::vector<Location> const &locations ) { _locations = locations; }
 void	Config::setServerName( std::vector<std::string> const &serverName ) { _server_name = serverName; }
 void	Config::setErrorPages( std::map<short, std::string> const &errorPages ) { _error_pages = errorPages; }
-void	Config::setMaxClientBody( unsigned long const &maxClientBody ) { _client_max_body_size = maxClientBody; }
+void	Config::setMaxClientBody( size_t const &maxClientBody ) { _client_max_body_size = maxClientBody; }
 
 /*  */
 
-void	Config::pushLocation( Location *&location ) { _locations.push_back(location); }
+void	Config::pushLocation( Location location ) { _locations.push_back(location); }
 void	Config::pushServerName( std::string const &serverName ) { _server_name.push_back(serverName); }
 void	Config::insertErrorPage( short const &num, std::string const &file ) { _error_pages[num] = file; }
 
@@ -87,11 +81,11 @@ static	std::string const	getExtension( std::string const &word )
 		return (std::string());
 }
 
-Location	*Config::getSingleLocation( std::string const &path )
+Location	Config::getSingleLocation( std::string const &path )
 {
 	std::string					extension;
 	std::string					remainder("/");
-	Location					*defaultLocation = NULL;
+	Location					defaultLocation;
 	std::vector<std::string>	words = vecSplit(path, '/');
 
 	if (words.size() > 0)
@@ -104,17 +98,17 @@ Location	*Config::getSingleLocation( std::string const &path )
 			remainder += words[i];
 		else
 			remainder += "/" + words[i];
-		for (std::vector<Location *>::iterator it = _locations.begin(); it != _locations.end(); it++)
+		for (std::vector<Location>::iterator it = _locations.begin(); it != _locations.end(); it++)
 		{
 			if (!extension.empty())
 			{
-				std::string const	locationExt = getExtension((*it)->getLocation());
+				std::string const	locationExt = getExtension((*it).getLocation());
 				if (extension == locationExt)
 					return (*it);
 			}
-			if ((*it)->getLocation() == "/")
+			if ((*it).getLocation() == "/")
 				defaultLocation = *it;
-			if ((*it)->getLocation() == remainder)
+			if ((*it).getLocation() == remainder)
 				return (*it);
 		}
 	}
@@ -123,9 +117,9 @@ Location	*Config::getSingleLocation( std::string const &path )
 
 void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitParenth )
 {
-	Location *inLocation = NULL;
 	bool afterSepNW = true;
 	bool afterVar = false;
+	bool inLocation = false;
 	std::string line;
 	while (getline(infile, line)) // read line by line
 	{
@@ -203,7 +197,9 @@ void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitPar
 			// if keyword is location, check for location value and parenthesis (also set inLocation to true)
 			if (keyword == "location")
 			{
-				inLocation = new Location();
+				Location location;
+				_locationCount++;
+				inLocation = true;
 				while (it != line.end() && isWhitespace(*it))	// skip whitespaces
 				{
 					it++;
@@ -214,21 +210,21 @@ void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitPar
 					throw Webserv::NoException();
 				}
 				std::string::iterator loc_end = findKeywordEnd(it, line.end());
-				std::string location = line.substr(it - line.begin(), (loc_end - line.begin()) - (it - line.begin()));
+				std::string locationPath = line.substr(it - line.begin(), (loc_end - line.begin()) - (it - line.begin()));
 				it = loc_end;
 
 				// check if location value starts with a slash or a star
-				if (location[0] != '/' && location[0] != '*')
+				if (locationPath[0] != '/' && locationPath[0] != '*')
 				{
 					std::cerr << "ERROR on line " << lineCount << ": Location value must start with a slash or a star" << std::endl;
 					throw Webserv::NoException();
 				}
 
 				// set location value and push location to locations vector
-				inLocation->setLocation(location);
-				if (location == "/")
+				location.setLocation(locationPath);
+				if (locationPath == "/")
 					_has_root_location = true;
-				_locations.push_back(inLocation);
+				_locations.push_back(location);
 
 				// check for opening parenthesis, if non-whitespace characters are between location value and parenthesis, throw error
 				while (it != line.end() && *it && isWhitespace(*it) && *it != '{')
@@ -267,7 +263,7 @@ void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitPar
 				}
 				if (inLocation) // ...while in location scope, inLocation should be set to false
 				{
-					inLocation = NULL;
+					inLocation = false;
 				}
 			}
 
@@ -283,7 +279,7 @@ void    Config::makeConfig( std::ifstream &infile, int &lineCount, bool awaitPar
 }
 
 void	Config::lexingAfterVar( std::string const &line, int const &lineCount, std::string const &keyword,
-								std::string::iterator &it, Location *location, bool &afterSepNW, bool &afterVar )
+								std::string::iterator &it, bool &inLocation, bool &afterSepNW, bool &afterVar )
 {
 	int nbvals = 0;
 	std::vector<std::string> values;
@@ -309,7 +305,7 @@ void	Config::lexingAfterVar( std::string const &line, int const &lineCount, std:
 			{
 				afterSepNW = true;
 				afterVar = false;
-				parseKeyword(keyword, values, lineCount, location);
+				parseKeyword(keyword, values, lineCount, inLocation);
 				break;
 			}
 		}
@@ -327,7 +323,7 @@ void	Config::lexingAfterVar( std::string const &line, int const &lineCount, std:
 		{
 			afterSepNW = true;
 			afterVar = false;
-			parseKeyword(keyword, values, lineCount, location);
+			parseKeyword(keyword, values, lineCount, inLocation);
 		}
 	}
 	if (it == line.end())
@@ -344,55 +340,56 @@ void	Config::lexingAfterVar( std::string const &line, int const &lineCount, std:
 
 /* Parsing methods */
 
-void	Config::parseKeyword( std::string const &keyword, std::vector<std::string> const &values, int const &lineCount, Location *location )
+void	Config::parseKeyword( std::string const &keyword, std::vector<std::string> const &values,
+	int const &lineCount, bool &inLocation )
 {
 	if (keyword == "root")
 	{
-		parseKeywordRoot(values, lineCount, location);
+		parseKeywordRoot(values, lineCount, inLocation);
 	}
 	else if (keyword == "host")
 	{
-		parseKeywordHost(values, lineCount, location);
+		parseKeywordHost(values, lineCount, inLocation);
 	}
 	else if (keyword == "index")
 	{
-		parseKeywordIndex(values, lineCount, location);
+		parseKeywordIndex(values, lineCount, inLocation);
 	}
 	else if (keyword == "listen")
 	{
-		parseKeywordListen(values, lineCount, location);
+		parseKeywordListen(values, lineCount, inLocation);
 	}
 	else if (keyword == "server_name")
 	{
-		parseKeywordServerName(values, lineCount, location);
+		parseKeywordServerName(values, lineCount, inLocation);
 	}
 	else if (keyword == "error_page")
 	{
-		parseKeywordErrorPage(values, lineCount, location);
+		parseKeywordErrorPage(values, lineCount, inLocation);
 	}
 	else if (keyword == "client_max_body_size")
 	{
-		parseKeywordClientMaxBodySize(values, lineCount, location);
+		parseKeywordClientMaxBodySize(values, lineCount, inLocation);
 	}
 	else if (keyword == "alias")
 	{
-		parseKeywordAlias(values, lineCount, location);
+		parseKeywordAlias(values, lineCount, inLocation);
 	}
 	else if (keyword == "return")
 	{
-		parseKeywordReturn(values, lineCount, location);
+		parseKeywordReturn(values, lineCount, inLocation);
 	}
 	else if (keyword == "autoindex")
 	{
-		parseKeywordAutoindex(values, lineCount, location);
+		parseKeywordAutoindex(values, lineCount, inLocation);
 	}
 	else if (keyword == "allow_methods")
 	{
-		parseKeywordAllowedMethods(values, lineCount, location);
+		parseKeywordAllowedMethods(values, lineCount, inLocation);
 	}
 	else if (keyword == "cgi_pass")
 	{
-		parseKeywordCgiPass(values, lineCount, location);
+		parseKeywordCgiPass(values, lineCount, inLocation);
 	}
 	else
 	{
@@ -401,9 +398,9 @@ void	Config::parseKeyword( std::string const &keyword, std::vector<std::string> 
 	}
 }
 
-void	Config::parseKeywordRoot( std::vector<std::string> const &values, int const &lineCount, Location *location )
+void	Config::parseKeywordRoot( std::vector<std::string> const &values, int const &lineCount, bool &inLocation )
 {
-	if ((_root != "" && !location) || (location && location->getRoot() != ""))
+	if ((_root != "" && !inLocation) || (inLocation && _locations[_locationCount].getRoot() != ""))
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Root variable already defined in scope" << std::endl;
 		throw Webserv::NoException();
@@ -413,15 +410,15 @@ void	Config::parseKeywordRoot( std::vector<std::string> const &values, int const
 		std::cerr << "ERROR on line " << lineCount << ": Too many values for root variable" << std::endl;
 		throw Webserv::NoException();
 	}
-	if (location)
-		location->setRoot(values[0]);
+	if (inLocation)
+		_locations[_locationCount].setRoot(values[0]);
 	else
 		setRoot(values[0]);
 }
 
-void	Config::parseKeywordHost( std::vector<std::string> const &values, int const &lineCount, Location *location )
+void	Config::parseKeywordHost( std::vector<std::string> const &values, int const &lineCount, bool &inLocation )
 {
-	if (location)
+	if (inLocation)
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Host variable not allowed in location scope" << std::endl;
 		throw Webserv::NoException();
@@ -439,9 +436,9 @@ void	Config::parseKeywordHost( std::vector<std::string> const &values, int const
 	setHost(values[0]);
 }
 
-void	Config::parseKeywordIndex( std::vector<std::string> const &values, int const &lineCount, Location *location )
+void	Config::parseKeywordIndex( std::vector<std::string> const &values, int const &lineCount, bool &inLocation )
 {
-	if ((_index != "" && !location) || (location && location->getIndex() != ""))
+	if ((_index != "" && !inLocation) || (inLocation && _locations[_locationCount].getIndex() != ""))
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Index variable already defined in scope" << std::endl;
 		throw Webserv::NoException();
@@ -451,27 +448,27 @@ void	Config::parseKeywordIndex( std::vector<std::string> const &values, int cons
 		std::cerr << "ERROR on line " << lineCount << ": Too many values for index variable" << std::endl;
 		throw Webserv::NoException();
 	}
-	if (values[0] != "index.html" && !location)
+	if (values[0] != "index.html" && !inLocation)
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Index should be index.html in server scope" << std::endl;
 		throw Webserv::NoException();
 	}
-	if (location)
-		location->setIndex(values[0]);
+	if (inLocation)
+		_locations[_locationCount].setIndex(values[0]);
 	else
 		setIndex(values[0]);
 }
 
-void	Config::parseKeywordListen( std::vector<std::string> const &values, int const &lineCount, Location *location )
+void	Config::parseKeywordListen( std::vector<std::string> const &values, int const &lineCount, bool &inLocation )
 {
-	if (_listen != "" && !location)
-	{
-		std::cerr << "ERROR on line " << lineCount << ": Listen variable already defined in scope" << std::endl;
-		throw Webserv::NoException();
-	}
-	if (location)
+	if (inLocation)
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Listen variable not allowed in location scope" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (_listen != "")
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Listen variable already defined" << std::endl;
 		throw Webserv::NoException();
 	}
 	if (values.size() != 1)
@@ -487,9 +484,10 @@ void	Config::parseKeywordListen( std::vector<std::string> const &values, int con
 	setListen(values[0]);
 }
 
-void	Config::parseKeywordServerName( std::vector<std::string> const &values, int const &lineCount, Location *location )
+void	Config::parseKeywordServerName( std::vector<std::string> const &values, int const &lineCount,
+	bool &inLocation )
 {
-	if (location)
+	if (inLocation)
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Server name variable not allowed in location scope" << std::endl;
 		throw Webserv::NoException();
@@ -510,9 +508,10 @@ void	Config::parseKeywordServerName( std::vector<std::string> const &values, int
 	}
 }
 
-void	Config::parseKeywordErrorPage( std::vector<std::string> const &values, int const &lineCount, Location *location )
+void	Config::parseKeywordErrorPage( std::vector<std::string> const &values, int const &lineCount,
+	bool &inLocation )
 {
-	if (location)
+	if (inLocation)
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Error page variable not allowed in location scope" << std::endl;
 		throw Webserv::NoException();
@@ -536,7 +535,8 @@ void	Config::parseKeywordErrorPage( std::vector<std::string> const &values, int 
 	insertErrorPage(errorNum, values[1]);
 }
 
-void	Config::parseKeywordClientMaxBodySize( std::vector<std::string> const &values, int const &lineCount, Location *location )
+void	Config::parseKeywordClientMaxBodySize( std::vector<std::string> const &values, int const &lineCount,
+	bool &inLocation )
 {
 	if (values.size() != 1)
 	{
@@ -556,20 +556,21 @@ void	Config::parseKeywordClientMaxBodySize( std::vector<std::string> const &valu
 		std::cerr << "ERROR on line " << lineCount << ": Invalid client max body size" << std::endl;
 		throw Webserv::NoException();
 	}
-	if (location)
-		location->setMaxClientBody(maxClientBody);
+	if (inLocation)
+		_locations[_locationCount].setMaxClientBody(maxClientBody);
 	else
 		setMaxClientBody(maxClientBody);
 }
 
-void	Config::parseKeywordAlias( std::vector<std::string> const &values, int const &lineCount, Location *location )
+void	Config::parseKeywordAlias( std::vector<std::string> const &values, int const &lineCount,
+	bool &inLocation )
 {
-	if (!location)
+	if (!inLocation)
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Alias variable not allowed outside location scope" << std::endl;
 		throw Webserv::NoException();
 	}
-	if (location->getAlias() != "")
+	if (_locations[_locationCount].getAlias() != "")
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Alias variable already defined" << std::endl;
 		throw Webserv::NoException();
@@ -579,17 +580,17 @@ void	Config::parseKeywordAlias( std::vector<std::string> const &values, int cons
 		std::cerr << "ERROR on line " << lineCount << ": Too many values for alias variable" << std::endl;
 		throw Webserv::NoException();
 	}
-	location->setAlias(values[0]);
+	_locations[_locationCount].setAlias(values[0]);
 }
 
-void	Config::parseKeywordReturn( std::vector<std::string> const &values, int const &lineCount, Location *location )
+void	Config::parseKeywordReturn( std::vector<std::string> const &values, int const &lineCount, bool &inLocation )
 {
-	if (!location)
+	if (!inLocation)
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Return variable not allowed outside location scope" << std::endl;
 		throw Webserv::NoException();
 	}
-	if (location->getReturn().path != "")
+	if (_locations[_locationCount].getReturn() != "")
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Return variable already defined" << std::endl;
 		throw Webserv::NoException();
@@ -599,17 +600,17 @@ void	Config::parseKeywordReturn( std::vector<std::string> const &values, int con
 		std::cerr << "ERROR on line " << lineCount << ": Too many values for return variable" << std::endl;
 		throw Webserv::NoException();
 	}
-	location->setPathFromReturn(values[0]);
+	_locations[_locationCount].setReturn(values[0]);
 }
 
-void	Config::parseKeywordAutoindex( std::vector<std::string> const &values, int const &lineCount, Location *location )
+void	Config::parseKeywordAutoindex( std::vector<std::string> const &values, int const &lineCount, bool &inLocation )
 {
-	if (!location)
+	if (!inLocation)
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Autoindex variable not allowed outside location scope" << std::endl;
 		throw Webserv::NoException();
 	}
-	if (location->getAutoindexSet())
+	if (_locations[_locationCount].getAutoindexSet())
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Autoindex variable already defined" << std::endl;
 		throw Webserv::NoException();
@@ -624,19 +625,20 @@ void	Config::parseKeywordAutoindex( std::vector<std::string> const &values, int 
 		std::cerr << "ERROR on line " << lineCount << ": Invalid value for autoindex variable" << std::endl;
 		throw Webserv::NoException();
 	}
-	location->setAutoindexSet(true);
+	_locations[_locationCount].setAutoindexSet(true);
 	if (values[0] == "on")
-		location->setAutoindex(true);
+		_locations[_locationCount].setAutoindex(true);
 }
 
-void	Config::parseKeywordAllowedMethods( std::vector<std::string> const &values, int const &lineCount, Location *location )
+void	Config::parseKeywordAllowedMethods( std::vector<std::string> const &values, int const &lineCount,
+	bool &inLocation )
 {
-	if (!location)
+	if (!inLocation)
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Allowed methods variable not allowed outside location scope" << std::endl;
 		throw Webserv::NoException();
 	}
-	if (location->getAllowedMethods().var_set)
+	if (_locations[_locationCount].getGet() || _locations[_locationCount].getPost() || _locations[_locationCount].getRemove())
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Allowed methods variable already defined" << std::endl;
 		throw Webserv::NoException();
@@ -653,35 +655,66 @@ void	Config::parseKeywordAllowedMethods( std::vector<std::string> const &values,
 			std::cerr << "ERROR on line " << lineCount << ": Duplicate allowed methods forbidden" << std::endl;
 			throw Webserv::NoException();
 		}
-		location->setAllowedMethodsSet(true);
 		if (values[i] == "GET")
-			location->switchGet();
+			_locations[_locationCount].setGet(true);
 		if (values[i] == "POST")
-			location->switchPost();
+			_locations[_locationCount].setPost(true);
 		if (values[i] == "DELETE")
-			location->switchRemove();
+			_locations[_locationCount].setRemove(true);
 	}
 }
 
-void	Config::parseKeywordCgiPass( std::vector<std::string> const &values, int const &lineCount, Location *location )
+void	Config::parseKeywordCgiPass( std::vector<std::string> const &values, int const &lineCount, bool &inLocation )
 {
-	if (!location)
+	if (!inLocation)
 	{
 		std::cerr << "ERROR on line " << lineCount << ": CGI pass variable not allowed outside location scope" << std::endl;
 		throw Webserv::NoException();
 	}
-	if (!location->getCgiPass().empty())
+	if (!_locations[_locationCount].getCgiPass().empty())
 	{
 		std::cerr << "ERROR on line " << lineCount << ": CGI pass variable already defined" << std::endl;
 		throw Webserv::NoException();
 	}
 	for (size_t i = 0; i < values.size(); i++)
 	{
-		if (std::count(location->getCgiPass().begin(), location->getCgiPass().end(), values[i]))
+		if (std::count(_locations[_locationCount].getCgiPass().begin(), _locations[_locationCount].getCgiPass().end(), values[i]))
 		{
 			std::cerr << "ERROR on line " << lineCount << ": Duplicate CGI pass values forbidden" << std::endl;
 			throw Webserv::NoException();
 		}
-		location->pushCgiPass(values[i]);
+		_locations[_locationCount].pushCgiPass(values[i]);
 	}
+}
+
+std::ostream &operator<<(std::ostream &out, Config &obj)
+{
+	out << "Root: " << obj.getRoot() << std::endl;
+	out << "Host: " << obj.getHost() << std::endl;
+	out << "Index: " << obj.getIndex() << std::endl;
+	out << "Listen: " << obj.getListen() << std::endl;
+	out << "Server name: ";
+	for (size_t i = 0; i < obj.getServerName().size(); i++)
+	{
+		out << obj.getServerName()[i];
+		if (i < obj.getServerName().size() - 1)
+			out << ", ";
+	}
+	out << std::endl;
+	out << "Error pages: ";
+	for (std::map<short, std::string>::const_iterator it = obj.getErrorPages().begin(); it != obj.getErrorPages().end(); it++)
+	{
+		out << it->first << " -> " << it->second;
+		if (it != --obj.getErrorPages().end())
+			out << ", ";
+	}
+	out << std::endl;
+	out << "Max client body size: " << obj.getMaxClientBody() << std::endl;
+	out << "Locations: " << std::endl;
+	std::vector<Location> locations = obj.getLocations();
+	for (size_t i = 0; i < locations.size(); i++)
+	{
+		out << locations[i];
+	}
+	return (out);
 }
