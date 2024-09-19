@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:36 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/18 15:29:35 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/19 11:11:48 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -482,7 +482,7 @@ bool	HttpResponse::sendWithBody( void )
 
 bool	HttpResponse::sendCgiOutput( std::string const &output )
 {
-	std::string	toSend = getHeader().composeCgiHeader();
+	std::string	toSend = getHeader().composeHeader();
 	toSend += "\n";
 	toSend += output;
 	//std::cout << toSend << std::endl;

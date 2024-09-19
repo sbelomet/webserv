@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 11:36:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/18 11:51:03 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/19 11:08:09 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,13 +29,18 @@ Server const	&Server::operator=( Server const &copy )
 	{
 		setEpollfd(copy.getEpollFd());
 		setSockets(copy.getSockets());
-		setServers(copy.getServers());
+		setConfigs(copy.getConfigs());
 		setServerAddr(copy.getServerAddr());
 	}
 	return (*this);
 }
 
 /* */
+
+std::vector<Config> &Server::getConfigs(void)
+{
+	return (_configs);
+}
 
 int	const	&Server::getEpollFd( void ) const
 {
@@ -57,14 +62,14 @@ void Server::setSockets(std::vector<int> const &sockets)
 	_sockets = sockets;
 }
 
-std::map<int, Config> const &Server::getServers(void) const
+std::vector<Config> const &Server::getConfigs(void) const
 {
-	return (_servers);
+	return (_configs);
 }
 
-void Server::setServers(std::map<int, Config> const &servers)
+void Server::setConfigs(std::vector<Config> const &configs)
 {
-	_servers = servers;
+	_configs = configs;
 }
 
 std::map<int, int> const &Server::getNewConnections( void ) const
@@ -94,9 +99,9 @@ void	Server::pushSocket( int const &socket )
 	_sockets.push_back(socket);
 }
 
-void	Server::insertServer( int const &index, Config const &config )
+void	Server::pushConfig( Config const &config )
 {
-	_servers[getSockets()[index]] = config;
+	_configs.push_back(config);
 }
 
 void	Server::pushServerAddr( sockaddr_in const &socket_address )
@@ -110,16 +115,6 @@ void	Server::insertNewConnection( int const &newConnection, int const &index )
 }
 
 /*  */
-
-std::map<int, Config>	&Server::getServersMap( void )
-{
-	return (_servers);
-}
-
-Config	const &Server::getConfigFromServer( int const &index )
-{
-	return (_servers[index]);
-}
 
 int const	&Server::getSocketFromSockets( size_t const &index )
 {
@@ -148,7 +143,7 @@ void	Server::createSockets( Config config )
 	if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
 		throw (Webserv::SocketOptException());
 	pushSocket(socket_fd);
-	insertServer(socket_fd, config);
+	pushConfig(config);
 }
 
 void	Server::createServer( Config config )

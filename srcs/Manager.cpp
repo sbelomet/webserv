@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 13:34:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/18 15:29:47 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/19 12:39:01 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,8 +142,6 @@ void	Manager::manageResponse( httpRequest const &request,
 		return (response.getHeader().updateStatus(response.getRequestStatusCode()));
 	std::cout << "1" << std::endl;
 	Location	location = config.getSingleLocation(response.getPath());
-	if (location.getLocation() == "DEFAULT")
-		return (response.getHeader().updateStatus(404));
 	std::cout << "2" << std::endl;
 	if (!location.isAllowedMethod(response.getMethod()))
 		return (response.getHeader().updateStatus(405));
@@ -194,7 +192,6 @@ void	Manager::manageResponse( httpRequest const &request,
 			if (env["REDIRECT_STATUS"] != "200")
 				return (response.getHeader().updateStatus(atoi(env["REDIRECT_STATUS"].c_str())));
 
-			std::cout << "FUCK MEEEEE" << std::endl;
 			cgi.executeCGI(request.getBody());
 			env = cgi.getEnv();
 			if (env["REDIRECT_STATUS"] != "200")
@@ -227,12 +224,17 @@ void	Manager::sendingError( HttpResponse &response, Config &config,
 	std::string			location;
 	std::stringstream	ss(statusCode);
 	
+	std::cout << "getting error page" << std::endl;
 	ss >> code;
 	response.getHeader().updateStatus(301);
+	response.getHeader().modifyHeadersMap("Content-Type: ", "text/html");
 	std::map<short, std::string>	errorPages = config.getErrorPages();
 	std::map<short, std::string>::const_iterator	it = errorPages.find(code);
 	if (it == errorPages.end())
+	{
 		location = "/error_pages/" + statusCode + ".html";
+		response.getHeader().modifyHeadersMap("Location: ", location);
+	}
 	else
 	{
 		int	fd;
@@ -259,25 +261,27 @@ void	Manager::sendingError( HttpResponse &response, Config &config,
 void	Manager::waitingForResponse( Server &server, httpRequest const &request,
 	int const &fd )
 {
-	int	const	socketIndex = server.getIndexSocketFromNewConnections(fd);
-	Config	config = server.getConfigFromServer(server.getSockets()[server.getSocketFromSockets(socketIndex)]);
+	Config				config;
+	std::vector<Config>	configs = server.getConfigs();
+	int	const			socketIndex = server.getIndexSocketFromNewConnections(fd);
+	
+	config = configs[socketIndex];
 	HttpResponse	response(request, fd);
 
 	manageResponse(request, response, config);
 	std::string const	statusCode = response.getHeader().getStatusCode();
-	if (statusCode != "200" || statusCode != "301")
+	std::cout << "status code: " << statusCode << std::endl;
+	if (statusCode != "200" && statusCode != "301")
 	{
 		sendingError( response, config, statusCode );
 		std::cout << "DONE with status code: " << statusCode << std::endl;
 	}
 	else
-	{
-		if (response.getHeader().getHeaders()["Connection: "] == "close")
-		{
-			epoll_ctl(server.getEpollFd(), EPOLL_CTL_DEL, fd, NULL);
-			close(fd);
-		}
 		std::cout << "DONE" << std::endl;
+	if (response.getHeader().getHeaders()["Connection: "] == "close")
+	{
+		epoll_ctl(server.getEpollFd(), EPOLL_CTL_DEL, fd, NULL);
+		close(fd);
 	}
 }
 
@@ -305,7 +309,7 @@ void	Manager::readRequest( Server &server, int const &fd )
 		return ;
 	}
 	buff[read_bytes] = '\0';
-	// std::cout << "READ: " << buff << std::endl;
+	std::cout << "READ: " << buff << std::endl;
 	request.parseRequest(buff, read_bytes);
 	std::cout << request << std::endl;
 	waitingForResponse(server, request, fd);

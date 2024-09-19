@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 12:46:56 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/18 13:39:05 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/19 10:32:28 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,9 +37,9 @@ class Manager
 		void	manageResponse( httpRequest const &request,
 			HttpResponse &response, Config &config );	
 		void	readRequest( Server &server, int const &fd );
-		bool	acceptConnection( Server &server, int const &index );
 		void	sendingError( HttpResponse &response, Config &config,
 			std::string const &statusCode );
+		bool	acceptConnection( Server &server, int const &socketServer );
 		void	waitingForResponse( Server &server, httpRequest const &request,
 			int const &fd );
 	public:

@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:14 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/18 15:15:33 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/19 15:13:43 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ class Config
 		std::vector<Location>			_locations;
 		std::vector<std::string>		_server_name;
 		std::map<short, std::string>	_error_pages;
-		int								_locationCount;
+		int								_locationIndex;
 		bool							_has_root_location;
 		size_t							_client_max_body_size;
 
@@ -69,10 +69,10 @@ class Config
 		std::string const	&getHost( void ) const;
 		std::string const	&getIndex( void ) const;
 		std::string const	&getListen( void ) const;
+		std::vector<Location>	&getLocations( void );
 		size_t const	&getMaxClientBody( void ) const;
 		bool const		&getHasRootLocation( void ) const;
 		std::vector<Location> const	&getLocations( void ) const;
-		std::vector<Location>	&getLocations( void );
 		std::vector<std::string> const	&getServerName( void ) const;
 		std::map<short, std::string> const	&getErrorPages( void ) const;
 

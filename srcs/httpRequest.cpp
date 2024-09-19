@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 10:31:17 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/18 11:05:14 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/19 12:57:22 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,15 +48,31 @@ void	httpRequest::parseRequest( char *buffer, int const &size )
 	std::string::iterator it = request.begin();
 
 	if (checkMethod(it, request.end()))
+	{
+		std::cout << "Method fucked up" << std::endl;
 		return ;
+	}
 	if (checkPath(it, request.end()))
+	{
+		std::cout << "Path fucked up" << std::endl;
 		return ;
+	}
 	if (checkVersion(it, request.end()))
+	{
+		std::cout << "version fucked up" << std::endl;
 		return ;
+	}
 	if (fillHeaders(it, request.end()))
+	{
+		std::cout << "headers fucked up" << std::endl;
 		return ;
+	}
 	if (checkBody(it, request.end()))
+	{
+
+		std::cout << "body fucked up" << std::endl;
 		return ;
+	}
 	_status_code = 200;
 }
 
@@ -166,7 +182,7 @@ int	httpRequest::checkBody( std::string::iterator &it, std::string::iterator req
 	}
 	it = end + 2;
 	std::string tmp(it, reqEnd);
-	if (_headers.find("content-type") != _headers.end() && _headers["content-type"].find("boundary=") != std::string::npos)
+/* 	if (_headers.find("content-type") != _headers.end() && _headers["content-type"].find("boundary=") != std::string::npos)
 	{
 		std::string boundary = _headers["content-type"].substr(_headers["content-type"].find("boundary=") + 9);
 		boundary += "--";
@@ -176,7 +192,7 @@ int	httpRequest::checkBody( std::string::iterator &it, std::string::iterator req
 			_status_code = 413;
 			return 1;
 		}
-	}
+	} */
 	_body = tmp;
 	return 0;
 }

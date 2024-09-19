@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   MapConfig.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 10:28:01 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/18 14:45:49 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/19 11:16:39 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,19 +69,13 @@ Config	*MapConfig::getConfigFromMap(std::string const &key)
 void	MapConfig::makeAll( Server &server, std::string const &filepath )
 {
 	std::vector<Config> configs = mappingConfigs(filepath);
-	Config	config = configs[0];
-	std::cout << "config: " << config.getIndex() << " " << config.getListen() << " " << config.getRoot() << std::endl;
-	Location loc = config.getLocations()[0];
-	std::cout << "methods for location -> " << loc.getMaxClientBody() << " " << loc.getGet() << " " << loc.getPost() << " " << loc.getRemove() << std::endl;
 	if (configs.empty())
 		throw (Webserv::NoException());
 	std::cout << "configs ready" << std::endl;
 	for (size_t i = 0; i < configs.size(); i++)
 	{
 		server.createSockets(configs[i]);
-		std::cout << "create socket" << std::endl;
 		server.createServer(configs[i]);
-		std::cout << "create server" << std::endl;
 	}
 	std::cout << GREEN << "Sockets and Servers successfully created" << RESET << std::endl;
 	server.bindServers();

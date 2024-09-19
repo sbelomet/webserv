@@ -1,0 +1,34 @@
+* {
+    margin: 0;
+    box-sizing: border-box;
+}
+
+head {
+    margin: 1rem;
+}
+
+h1 {
+    text-align: center;
+    font-size: 8rem;
+}
+
+section {
+    margin: 1rem;
+}
+
+article {
+    font-size: 10rem;
+    color: #ffe0e7;
+    text-align: center;
+    animation: glow 1s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from {
+      text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #91112b, 0 0 40px #91112b, 0 0 50px #91112b, 0 0 60px #91112b, 0 0 70px #91112b;
+    }
+    
+    to {
+      text-shadow: 0 0 15px #fff, 0 0 25px #93233a, 0 0 35px #93233a, 0 0 45px #93233a, 0 0 55px #93233a, 0 0 65px #93233a, 0 0 75px #93233a;
+    }
+}

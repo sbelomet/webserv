@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 11:35:54 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/18 11:49:02 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/19 11:07:45 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,8 @@ class Server
 {
     private:
 		int							_epollFd;
-        std::vector<int>			_sockets;
-        std::map<int, Config>		_servers;
+		std::vector<int>			_sockets;
+		std::vector<Config>			_configs;
 		std::map<int, int>			_newConnections;
 		std::vector<struct sockaddr_in>	_serverAddr;
 
@@ -45,8 +45,9 @@ class Server
 		std::vector<int> const &getSockets( void ) const;
 		void	setSockets( std::vector<int> const &sockets );
 
-		std::map<int, Config> const &getServers( void ) const;
-		void	setServers( std::map<int, Config> const &servers );
+		std::vector<Config>	&getConfigs( void );
+		std::vector<Config> const &getConfigs( void ) const;
+		void	setConfigs( std::vector<Config> const &configs );
 
 		std::map<int, int> const &getNewConnections( void ) const;
 		void	setNewConnections( std::map<int, int> const &newConnections );
@@ -57,14 +58,12 @@ class Server
 		/* insert to containers methods */
 
 		void	pushSocket( int const &socket );
+		void	pushConfig( Config const &config );
 		void	pushServerAddr( sockaddr_in const &socket_address );
-		void	insertServer( int const &index, Config const &config );
 		void	insertNewConnection( int const &newConnection, int const &index );
 
 		/* get individual */
-		
-		std::map<int, Config>	&getServersMap( void );
-		Config const	&getConfigFromServer( int const &index );
+
 		int const		&getSocketFromSockets( size_t const &index );
 		sockaddr_in		&getSockaddrFromServerAddr( size_t const &index );
 		int	const		&getIndexSocketFromNewConnections( int const &index );

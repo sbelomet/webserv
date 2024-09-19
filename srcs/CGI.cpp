@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 10:43:35 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/18 15:52:58 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/19 14:55:06 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,7 +158,11 @@ void CGI::executeCGI(std::string const &body)
 
 	FILE *bodyfile = std::tmpfile();
 	int bodyfd = fileno(bodyfile);
-	write(bodyfd, body.c_str(), body.size());
+	if (write(bodyfd, body.c_str(), body.size()) == -1)
+	{
+		perror("write()");
+		throw (Webserv::NoException());
+	}
 	rewind(bodyfile);
 
 	pid = fork();
@@ -221,7 +225,11 @@ void CGI::executeCGI(std::string const &body)
 			fclose(tmpfile);
 			fclose(bodyfile);
 			kill(execPID, SIGKILL);
-			write(tmpfd, "TIMEOUT - Something went wrong with the CGI script", 50);
+			if (write(tmpfd, "TIMEOUT - Something went wrong with the CGI script", 50) == -1)
+			{
+				perror("write()");
+				throw (Webserv::NoException());
+			}
 		}
 		wait(NULL);
 		close(tmpfd);

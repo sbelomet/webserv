@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 13:38:03 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/18 13:26:24 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/18 15:21:37 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,7 @@ std::string const	HttpHeader::composeHeader( void )
 	{
 		if ((it->first == "Location: " && it->second.empty())
 			|| it->first == "DEFAULT" ||
-			(it->first == "Content-Length: " && it->second == "0"))
+			(it->first == "Content-Length: " && (it->second == "0")))
 			continue ;
 		toSend += it->first + it->second + "\n";
 	}
