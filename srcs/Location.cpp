@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 14:09:46 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/18 13:29:11 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/19 15:09:56 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,7 +211,6 @@ void	Location::clearLocation( void )
 
 bool	Location::isAllowedMethod( std::string const &method )
 {
-	std::cout << "methods: " << (getGet() ? "true ": "false") << std::endl;
 	if (method == "GET" && getGet())
 		return (true);
 	else if (method == "POST" && getPost())

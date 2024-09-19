@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpRequest.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 10:31:17 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/19 12:57:22 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/19 15:51:50 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,9 +42,9 @@ std::string const	&httpRequest::getBody( void ) const { return (_body); }
 /**
  * Parse the request and populate the class attributes
  */
-void	httpRequest::parseRequest( char *buffer, int const &size )
+void	httpRequest::parseRequest( std::string request )
 {
-	std::string		request(buffer, size);
+	//std::string		request(buffer, size);
 	std::string::iterator it = request.begin();
 
 	if (checkMethod(it, request.end()))

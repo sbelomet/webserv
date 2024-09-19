@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:36 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/19 11:11:48 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/19 15:49:54 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -212,16 +212,16 @@ bool	HttpResponse::checkPath( Location location,
 	int	fd;
 	if (isDirectory(rootPath))
 	{
-		std::cout << "IS A DIRECTORY" << std::endl;
+		//std::cout << "IS A DIRECTORY" << std::endl;
 		if (!location.getIndex().empty())
 		{
-			std::cout << "HAVE A INDEX" << std::endl;
+			//std::cout << "HAVE A INDEX" << std::endl;
 			setFilePath(rootPath + "/" + location.getIndex());
 			return (true);
 		}
 		else if (!location.getReturn().empty())
 		{
-			std::cout << "HAVE A RETURN" << std::endl;
+			//std::cout << "HAVE A RETURN" << std::endl;
 			setToRedir(true);
 			return (true);
 		}
@@ -274,8 +274,8 @@ bool	HttpResponse::treatResponsePath( Location location )
 	}
 	if (getMethod() == "DELETE" && !getFilePath().empty())
 	{
-		std::cout << "DELETE" << std::endl;
 		std::remove(concatenateRoot(location, getPath()).c_str());
+		std::cout << GREEN << "file deleted" << RESET << std::endl;
 		setFilePath("./public/deleted.html");
 		return (true);
 	}
@@ -345,19 +345,22 @@ static std::string	addEnding( std::string const &name )
 	return (ending);
 }
 
-/*static	std::string	backwardRoot( std::string const &root )
+static	std::string	backwardRoot( std::string const &path,
+	std::string const &filePath )
 {
-	std::string	result = root.substr(0, (root.size() - 1));
-	result = "/" + result;
-	return (result);
-}*/
+	std::vector<std::string>	rootWords = vecSplit(filePath, '/');
+	std::vector<std::string>	pathWords = vecSplit(path, '/');
+	//std::string	result = root.substr(0, (root.size() - 1));
+	//result = "/" + result;
+	//return (result);
+}
 
 std::string	HttpResponse::buildLine( std::string const &name, int const &type )
 {
 	std::string	line;
 	line = "\t\t\t<div id=\"anchors\">";
 	if (type == DT_DIR && name == "..")
-		line += "\t\t\t\t<a href=\"" + getPath() + "\" > " + addEnding(name); // TO DO getConfig -> backwardRoot(getConfig().getSingleLocation(getPath())->getRoot())
+		line += "\t\t\t\t<a href=\"" + getPath() + "\" > " + addEnding(name); // TO DO
 	else if (type == DT_DIR)
 		line += "\t\t\t\t<a href=\"" + getPath() + "/" + name + "\" > " + addEnding(name);
 	else if (type == DT_REG)
@@ -446,7 +449,6 @@ bool	HttpResponse::sendAutoIndex( void )
 	updateHeader();
 	toSend = getHeader().composeHeader() + "\n";
 	toSend += body;
-	std::cout << toSend << std::endl;
 	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
 	{
 		perror("send()");
@@ -457,7 +459,6 @@ bool	HttpResponse::sendAutoIndex( void )
 
 bool	HttpResponse::sendWithBody( void )
 {
-	std::cout << "file path ->" << getFilePath() << std::endl;
 	std::ifstream   infile(getFilePath().c_str());
 	if (!infile.is_open())
 		throw (Webserv::FileException());
@@ -469,7 +470,6 @@ bool	HttpResponse::sendWithBody( void )
 	{
 		toSend += line + "\n";
 	}
-	//std::cout << toSend << std::endl;
 	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
 	{
 		perror("send()");
@@ -485,7 +485,6 @@ bool	HttpResponse::sendCgiOutput( std::string const &output )
 	std::string	toSend = getHeader().composeHeader();
 	toSend += "\n";
 	toSend += output;
-	//std::cout << toSend << std::endl;
 	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
 	{
 		perror("send()");
@@ -497,7 +496,6 @@ bool	HttpResponse::sendCgiOutput( std::string const &output )
 bool	HttpResponse::sendHeader( void )
 {
 	std::string const	toSend = getHeader().composeHeader();
-	std::cout << toSend << std::endl;
 	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
 	{
 		perror("send()");
@@ -516,7 +514,6 @@ void	HttpResponse::updateHeader( void )
 	{
 		std::stringstream	ss;
 		ss << getBodysize();
-		//std::cout << "Content-Length: " << ss.str() << std::endl;
 		getHeader().modifyHeadersMap("Content-Length: ", ss.str());
 	}
 	else

@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:12:17 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/18 14:03:30 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/19 13:48:54 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 # include <sys/stat.h>
 
 # define MAX_EVENTS 4096
-# define BUFFER_SIZE 50000
+# define BUFFER_SIZE 100
 # define CGITIMEOUT 1
 # define RED "\033[1;31m"
 # define GREEN "\033[1;32m"

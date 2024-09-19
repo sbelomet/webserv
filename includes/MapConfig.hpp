@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   MapConfig.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 09:44:19 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/18 13:33:31 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/19 15:13:38 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,22 +36,9 @@ class MapConfig
 		MapConfig( void );
 		virtual ~MapConfig( void );
 
-		/* getters */
-
-		//std::map<std::string, Config *> &getMapConfig( void );
-		//std::map<std::string, Config *> const &getMapConfig( void ) const;
-
-		/* setters */
-
-		//void setMapConfig( std::map<std::string, Config *> const &mapConfig );
-
 		/* methods */
 
-		//Config	*getConfigFromMap( std::string const &key );
-		//void	insertConfig( std::string const &key, Config *config );
 		void	makeAll( Server &server, std::string const &filepath );
 };
-
-//std::ostream &operator<<(std::ostream &out, MapConfig &obj);
 
 #endif

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Manager.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 13:34:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/19 12:39:01 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/19 15:52:10 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,7 @@ Manager::Manager( void )
 {}
 
 Manager::~Manager( void )
-{
-	std::cout << "Manager destroyed" << std::endl;
-}
+{}
 
 Manager::Manager( Manager const &copy )
 {
@@ -100,9 +98,8 @@ bool	Manager::epollWaiting( Server &server )
 		else
 		{
 			readRequest(server, events[i].data.fd);
-			std::cout << "request answered" << std::endl;
+			std::cout << GREEN << "Request answered" << RESET << std::endl;
 		}
-		// add another else if, if add stdin to epoll for check inputs
 	}
 	return (true);
 }
@@ -125,27 +122,17 @@ void	Manager::epollStarting( Server &server )
 			throw (Webserv::NoException());
 		}
 	}
-	//epoll_event	event;
-	//event.data.fd = 0;
-	//event.events = EPOLLIN;
-	//if (epoll_ctl(server.getEpollFd(), EPOLL_CTL_ADD, 0, &event) < 0)
-	//{
-	//	perror("epoll_ctl: quit");
-	//	throw (Webserv::NoException());
-	//}
 }
 
 void	Manager::manageResponse( httpRequest const &request,
 	HttpResponse &response, Config &config )
 {
-	if (response.getRequestStatusCode() == 400 || response.getRequestStatusCode() == 404 || response.getRequestStatusCode() == 413)
+	if (response.getRequestStatusCode() == 400 || response.getRequestStatusCode() == 404
+		|| response.getRequestStatusCode() == 413)
 		return (response.getHeader().updateStatus(response.getRequestStatusCode()));
-	std::cout << "1" << std::endl;
 	Location	location = config.getSingleLocation(response.getPath());
-	std::cout << "2" << std::endl;
 	if (!location.isAllowedMethod(response.getMethod()))
 		return (response.getHeader().updateStatus(405));
-	std::cout << "3" << std::endl;
 	if (!request.getBody().empty())
 	{
 		size_t	clientMaxBodySize = location.getMaxClientBody();
@@ -159,7 +146,6 @@ void	Manager::manageResponse( httpRequest const &request,
 			return (response.getHeader().updateStatus(413));
 		response.setMaxClientBodySize(clientMaxBodySize);
 	}
-	std::cout << "4" << std::endl;
 	if (response.treatResponsePath(location))
 	{
 		Mime	mime;
@@ -170,28 +156,26 @@ void	Manager::manageResponse( httpRequest const &request,
 			response.setBodysize(fileSize(response.getFilePath()));
 		if (response.getToRedir())
 		{
-			std::cout << "REDIR" << std::endl;
+			//std::cout << "REDIR" << std::endl;
 			response.updateHeader();
 			if (!response.sendHeader())
 				throw (Webserv::NoException());
-			std::cout << "HEADER SENDED" << std::endl;
 		}
 		else if (response.getAutoindex())
 		{
-			std::cout << "AUTOINDEX" << std::endl;
+			//std::cout << "AUTOINDEX" << std::endl;
 			if (!response.sendAutoIndex())
 				throw (Webserv::NoException());
 		}
 		else if (response.getIsCgi())
 		{
-			std::cout << "CGI" << std::endl;
+			//std::cout << "CGI" << std::endl;
 			CGI cgi;
 			std::map<std::string, std::string> env;
 			cgi.setupCGI(request, response.getFilePath(), location);
 			env = cgi.getEnv();
 			if (env["REDIRECT_STATUS"] != "200")
 				return (response.getHeader().updateStatus(atoi(env["REDIRECT_STATUS"].c_str())));
-
 			cgi.executeCGI(request.getBody());
 			env = cgi.getEnv();
 			if (env["REDIRECT_STATUS"] != "200")
@@ -206,13 +190,12 @@ void	Manager::manageResponse( httpRequest const &request,
 		}
 		else
 		{
-			std::cout << "GET" << std::endl;
+			//std::cout << "GET" << std::endl;
 			if (response.getBodysize() > response.getMaxClientBodySize())
 				return (response.getHeader().updateStatus(413));
 			response.updateHeader();
 			if (!response.sendWithBody())
 				throw (Webserv::NoException());
-			std::cout << "WITH BODY SENDED" << std::endl;
 		}
 	}
 }
@@ -223,8 +206,7 @@ void	Manager::sendingError( HttpResponse &response, Config &config,
 	short				code;
 	std::string			location;
 	std::stringstream	ss(statusCode);
-	
-	std::cout << "getting error page" << std::endl;
+
 	ss >> code;
 	response.getHeader().updateStatus(301);
 	response.getHeader().modifyHeadersMap("Content-Type: ", "text/html");
@@ -267,17 +249,12 @@ void	Manager::waitingForResponse( Server &server, httpRequest const &request,
 	
 	config = configs[socketIndex];
 	HttpResponse	response(request, fd);
-
 	manageResponse(request, response, config);
 	std::string const	statusCode = response.getHeader().getStatusCode();
-	std::cout << "status code: " << statusCode << std::endl;
 	if (statusCode != "200" && statusCode != "301")
-	{
 		sendingError( response, config, statusCode );
-		std::cout << "DONE with status code: " << statusCode << std::endl;
-	}
-	else
-		std::cout << "DONE" << std::endl;
+	//else
+	//	std::cout << "DONE" << std::endl;
 	if (response.getHeader().getHeaders()["Connection: "] == "close")
 	{
 		epoll_ctl(server.getEpollFd(), EPOLL_CTL_DEL, fd, NULL);
@@ -290,30 +267,40 @@ void	Manager::waitingForResponse( Server &server, httpRequest const &request,
 */
 void	Manager::readRequest( Server &server, int const &fd )
 {
-	char	buff[BUFFER_SIZE + 1] = {0};
-	int		read_bytes = recv(fd, buff, BUFFER_SIZE, 0);
-	httpRequest	request;
-
-	if (read_bytes < 0)
+	int			read_bytes = -1;
+	std::string remainder = "";
+	while (1)
 	{
-		perror("read failed");
-		epoll_ctl(server.getEpollFd(), EPOLL_CTL_DEL, fd, NULL);
-		close(fd);
-		throw (Webserv::NoException());
+		char	buff[BUFFER_SIZE + 1] = {0};
+		read_bytes = recv(fd, buff, BUFFER_SIZE, 0);
+		if (read_bytes > 0)
+		{
+			std::string msg(buff, buff + read_bytes);
+			remainder = remainder + msg;
+			if (read_bytes != BUFFER_SIZE)
+				break;
+		}
+		else
+			break ;
 	}
-	else if (read_bytes == 0)
+	if (remainder.empty() || read_bytes == 0)
 	{
 		std::cout << YELLOW << "Timeout" << RESET << std::endl;
 		epoll_ctl(server.getEpollFd(), EPOLL_CTL_DEL, fd, NULL);
 		close(fd);
 		return ;
 	}
-	buff[read_bytes] = '\0';
-	std::cout << "READ: " << buff << std::endl;
-	request.parseRequest(buff, read_bytes);
+	else if (read_bytes < 0)
+	{
+		perror("read failed");
+		epoll_ctl(server.getEpollFd(), EPOLL_CTL_DEL, fd, NULL);
+		close(fd);
+		throw (Webserv::NoException());
+	}
+	httpRequest	request;
+	request.parseRequest(remainder);
 	std::cout << request << std::endl;
 	waitingForResponse(server, request, fd);
-	//int const		socketIndex = server.getIndexSocketFromNewConnections(fd);
 }
 
 void	Manager::makeAll( std::string const &filepath )

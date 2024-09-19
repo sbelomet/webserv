@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGI.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 10:43:35 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/19 14:55:06 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/19 15:51:45 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@ CGI const &CGI::operator=(CGI const &copy) { (void)copy; return *this; }
 
 CGI::~CGI()
 {
-	std::cout << "CGI destructor" << std::endl;
 	if (_malloc_env)
 	{
 		for (size_t i = 0; _malloc_env[i]; i++)
@@ -150,7 +149,6 @@ void CGI::setupCGI(httpRequest const &request, std::string const &script, Locati
  */
 void CGI::executeCGI(std::string const &body)
 {
-	std::cout << "EXECUTE CGI" << std::endl;
 	pid_t pid;
 	int status;
 	FILE *tmpfile = std::tmpfile();

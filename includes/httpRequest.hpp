@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 10:31:13 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/09 13:49:12 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/19 13:58:07 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ class httpRequest
 		std::string const	&getBody( void ) const;
 
 		/* Methods */
-		void	parseRequest( char *buffer, int const &size );
+		void	parseRequest( std::string request );
 };
 
 std::ostream	&operator<<( std::ostream &o, httpRequest const &req );

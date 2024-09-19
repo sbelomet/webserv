@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 10:28:01 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/19 11:16:39 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/19 15:13:21 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,14 +16,7 @@ MapConfig::MapConfig( void )
 {}
 
 MapConfig::~MapConfig( void )
-{
-	//std::map<std::string, Config *>::iterator it;
-	//std::cout << "delete configs" << std::endl;
-	//for (it = getMapConfig().begin(); it != getMapConfig().end(); it++)
-	//{
-	//	delete it->second;
-	//}
-}
+{}
 
 MapConfig::MapConfig( MapConfig const &copy )
 {
@@ -37,33 +30,6 @@ MapConfig const	&MapConfig::operator=( MapConfig const &copy )
 	return (*this);
 }
 
-/* */
-
-/*std::map<std::string, Config *>  &MapConfig::getMapConfig( void )
-{
-	return (this->_map_config);
-}
-
-void	MapConfig::setMapConfig( std::map<std::string, Config *> const &config )
-{
-	this->_map_config = config;
-}
-
-std::map<std::string, Config *> const	&MapConfig::getMapConfig( void ) const
-{
-	return (this->_map_config);
-}
-
-void	MapConfig::insertConfig(std::string const &key, Config *config)
-{
-	this->_map_config[key] = config;
-}
-
-Config	*MapConfig::getConfigFromMap(std::string const &key)
-{
-	return (this->_map_config[key]);
-}*/
-
 /*  */
 
 void	MapConfig::makeAll( Server &server, std::string const &filepath )
@@ -71,7 +37,6 @@ void	MapConfig::makeAll( Server &server, std::string const &filepath )
 	std::vector<Config> configs = mappingConfigs(filepath);
 	if (configs.empty())
 		throw (Webserv::NoException());
-	std::cout << "configs ready" << std::endl;
 	for (size_t i = 0; i < configs.size(); i++)
 	{
 		server.createSockets(configs[i]);
@@ -161,14 +126,8 @@ std::vector<Config>	MapConfig::mappingConfigs( std::string const &filepath )
 					throw Webserv::NoException();
 				}
 				checkValidConfig(config);
-				//serverCount++;
-				//std::string key = "server";
-				//std::ostringstream oss;
-				//oss << serverCount;
-				//key += oss.str();
-				//insertConfig(key, config);
 				configs.push_back(config);
-				std::cout << config << std::endl;
+				//std::cout << config << std::endl;
 				return (configs);
 			}
 			if (it == line.end())
@@ -283,46 +242,3 @@ void	MapConfig::fillLocations( Config &config )
 		}
 	}
 }
-
-/*std::ostream &operator<<(std::ostream &out, MapConfig &obj)
-{
-	for (std::map<std::string, Config *>::iterator it = obj.getMapConfig().begin(); it != obj.getMapConfig().end(); it++)
-	{
-		out << MAGENTA << it->first << "\n{" << RESET << std::endl;
-		out << RED << "  root: " << RESET << obj.getConfigFromMap(it->first)->getRoot() << std::endl;
-		out << RED << "  host: " << RESET << obj.getConfigFromMap(it->first)->getHost() << std::endl;
-		out << RED << "  index: " << RESET << obj.getConfigFromMap(it->first)->getIndex() << std::endl;
-		out << RED << "  max client body size: " << RESET << obj.getConfigFromMap(it->first)->getMaxClientBody() << std::endl;
-		std::vector<std::string> server_names = obj.getConfigFromMap(it->first)->getServerName();
-		for (std::vector<std::string>::iterator it = server_names.begin(); it != server_names.end(); it++)
-			out << RED << "  server_name: " << RESET << *it << std::endl;
-		std::map<short, std::string> error_pages = obj.getConfigFromMap(it->first)->getErrorPages();
-		for (std::map<short, std::string>::iterator it = error_pages.begin(); it != error_pages.end(); it++)
-			out << RED << "  error_pages: " << RESET << it->first << " " << it->second << std::endl;
-		out << RED << "  listen: " << RESET << obj.getConfigFromMap(it->first)->getListen() << std::endl;
-		std::vector<Location *> locations = obj.getConfigFromMap(it->first)->getLocations();
-		for (std::vector<Location *>::iterator it = locations.begin(); it != locations.end(); it++)
-		{
-			out << YELLOW << "  location: " << RESET << (*it)->getLocation() << std::endl;
-			out << YELLOW << "  {" << RESET << std::endl;
-			out << CYAN << "    root: " << RESET << (*it)->getRoot() << std::endl;
-			out << CYAN << "    index: " << RESET << (*it)->getIndex() << std::endl;
-			out << CYAN << "    alias: " << RESET << (*it)->getAlias() << std::endl;
-			out << CYAN << "    autoindex: " << RESET << (*it)->getAutoindex() << std::endl;
-			out << CYAN << "    max client body size: " << RESET << (*it)->getMaxClientBody() << std::endl;
-			std::vector<std::string> cgi_ext = (*it)->getCgiPass();
-			for (std::vector<std::string>::iterator it = cgi_ext.begin(); it != cgi_ext.end(); it++)
-				out << CYAN << "    cgi_pass: " << RESET << *it << std::endl;
-			s_return ret = (*it)->getReturn();
-			out << CYAN << "    return path: " << RESET << ret.path << std::endl;
-			out << CYAN << "    return status: " << RESET << ret.status << std::endl;
-			s_methods methods = (*it)->getAllowedMethods();
-			out << CYAN << "    allowed methods get: " << RESET << methods.get << std::endl;
-			out << CYAN << "    allowed methods post: " << RESET << methods.post << std::endl;
-			out << CYAN << "    allowed methods remove: " << RESET << methods.remove << std::endl;
-			out << YELLOW << "  }" << RESET << std::endl;
-		}
-		out << MAGENTA << "}" << RESET << std::endl;
-	}
-	return (out);
-}*/
