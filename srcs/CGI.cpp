@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGI.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 10:43:35 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/19 15:51:45 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/23 14:29:27 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,11 +223,6 @@ void CGI::executeCGI(std::string const &body)
 			fclose(tmpfile);
 			fclose(bodyfile);
 			kill(execPID, SIGKILL);
-			if (write(tmpfd, "TIMEOUT - Something went wrong with the CGI script", 50) == -1)
-			{
-				perror("write()");
-				throw (Webserv::NoException());
-			}
 		}
 		wait(NULL);
 		close(tmpfd);

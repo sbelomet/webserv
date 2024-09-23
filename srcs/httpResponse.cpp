@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:36 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/19 15:49:54 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/23 15:49:57 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -345,15 +345,15 @@ static std::string	addEnding( std::string const &name )
 	return (ending);
 }
 
-static	std::string	backwardRoot( std::string const &path,
+/* static	std::string	backwardRoot( std::string const &path,
 	std::string const &filePath )
 {
 	std::vector<std::string>	rootWords = vecSplit(filePath, '/');
 	std::vector<std::string>	pathWords = vecSplit(path, '/');
-	//std::string	result = root.substr(0, (root.size() - 1));
-	//result = "/" + result;
-	//return (result);
-}
+	std::string	result = root.substr(0, (root.size() - 1));
+	result = "/" + result;
+	return (result);
+} */
 
 std::string	HttpResponse::buildLine( std::string const &name, int const &type )
 {
@@ -496,6 +496,7 @@ bool	HttpResponse::sendCgiOutput( std::string const &output )
 bool	HttpResponse::sendHeader( void )
 {
 	std::string const	toSend = getHeader().composeHeader();
+	std::cout << "toSend: " << toSend << std::endl;
 	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
 	{
 		perror("send()");

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Manager.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 13:34:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/19 15:52:10 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/23 15:40:53 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,19 +129,25 @@ void	Manager::manageResponse( httpRequest const &request,
 {
 	if (response.getRequestStatusCode() == 400 || response.getRequestStatusCode() == 404
 		|| response.getRequestStatusCode() == 413)
+	{
+		std::cout << "request ERROR" << std::endl;
 		return (response.getHeader().updateStatus(response.getRequestStatusCode()));
+	}
 	Location	location = config.getSingleLocation(response.getPath());
 	if (!location.isAllowedMethod(response.getMethod()))
 		return (response.getHeader().updateStatus(405));
 	if (!request.getBody().empty())
 	{
 		size_t	clientMaxBodySize = location.getMaxClientBody();
+		std::cout << "clientMaxBodySize: " << clientMaxBodySize << std::endl;
 		if (clientMaxBodySize > 1)
 			clientMaxBodySize = clientMaxBodySize * 1024;
 		else
 			clientMaxBodySize = 1024;
 		clientMaxBodySize = clientMaxBodySize * 1024;
+		std::cout << "clientMaxBodySize: " << clientMaxBodySize << std::endl;
 		size_t const	bodysize = request.getBody().size();
+		std::cout << "bodysize: " << bodysize << std::endl;
 		if (bodysize > clientMaxBodySize)
 			return (response.getHeader().updateStatus(413));
 		response.setMaxClientBodySize(clientMaxBodySize);
@@ -198,6 +204,10 @@ void	Manager::manageResponse( httpRequest const &request,
 				throw (Webserv::NoException());
 		}
 	}
+	else
+	{
+		std::cout << "path ERROR" << std::endl;
+	}
 }
 
 void	Manager::sendingError( HttpResponse &response, Config &config,
@@ -208,6 +218,7 @@ void	Manager::sendingError( HttpResponse &response, Config &config,
 	std::stringstream	ss(statusCode);
 
 	ss >> code;
+	std::cout << "code: " << code << std::endl;
 	response.getHeader().updateStatus(301);
 	response.getHeader().modifyHeadersMap("Content-Type: ", "text/html");
 	std::map<short, std::string>	errorPages = config.getErrorPages();
@@ -235,6 +246,7 @@ void	Manager::sendingError( HttpResponse &response, Config &config,
 				location);
 		}
 	}
+	std::cout << "location: " << location << std::endl;
 	response.updateHeader();
 	if (!response.sendHeader())
 		throw (Webserv::NoException());
@@ -249,8 +261,10 @@ void	Manager::waitingForResponse( Server &server, httpRequest const &request,
 	
 	config = configs[socketIndex];
 	HttpResponse	response(request, fd);
+	std::cout << "response status: " << response.getRequestStatusCode() << std::endl;
 	manageResponse(request, response, config);
 	std::string const	statusCode = response.getHeader().getStatusCode();
+	std::cout << "statusCode: " << statusCode << std::endl;
 	if (statusCode != "200" && statusCode != "301")
 		sendingError( response, config, statusCode );
 	//else
@@ -295,6 +309,7 @@ void	Manager::readRequest( Server &server, int const &fd )
 		perror("read failed");
 		epoll_ctl(server.getEpollFd(), EPOLL_CTL_DEL, fd, NULL);
 		close(fd);
+		return ;
 		throw (Webserv::NoException());
 	}
 	httpRequest	request;

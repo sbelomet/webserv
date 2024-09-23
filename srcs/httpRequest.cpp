@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpRequest.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 10:31:17 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/19 15:51:50 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/23 15:48:13 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,7 +182,7 @@ int	httpRequest::checkBody( std::string::iterator &it, std::string::iterator req
 	}
 	it = end + 2;
 	std::string tmp(it, reqEnd);
-/* 	if (_headers.find("content-type") != _headers.end() && _headers["content-type"].find("boundary=") != std::string::npos)
+	if (_headers.find("content-type") != _headers.end() && _headers["content-type"].find("boundary=") != std::string::npos)
 	{
 		std::string boundary = _headers["content-type"].substr(_headers["content-type"].find("boundary=") + 9);
 		boundary += "--";
@@ -192,7 +192,7 @@ int	httpRequest::checkBody( std::string::iterator &it, std::string::iterator req
 			_status_code = 413;
 			return 1;
 		}
-	} */
+	}
 	_body = tmp;
 	return 0;
 }
