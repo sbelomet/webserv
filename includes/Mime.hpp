@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Mime.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/06 14:41:57 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/06 15:36:14 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/24 11:15:26 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define MIME_HPP
 # include <map>
 # include <string>
+# include "Webserv.hpp"
 
 class Mime
 {
@@ -27,7 +28,8 @@ class Mime
 		Mime const &operator=(Mime const &copy);
 
 		void			initMimeTypes( void );
-		std::string	getMimeType( std::string const &extension );
+		std::string	getMimeType( std::string const &extension,
+			std::string const &acceptList );
 };
 
 #endif

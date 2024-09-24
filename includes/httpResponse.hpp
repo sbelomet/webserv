@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:20 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/19 15:50:48 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/23 15:51:57 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,6 @@ class HttpResponse
 
 		int			_fd; // file descriptor to send response
 		bool		_isOk; // bool to know is response is 200
-		std::string	_host;
 		std::string	_path; // ex. -> /index.html
 		bool		_isCgi; // if location have a cgi
 		std::string	_method; // GET or POST or DELETE
@@ -65,9 +64,6 @@ class HttpResponse
 
 		bool const &getToRedir( void ) const;
 		void	setToRedir( bool const &toRedir );
-
-		std::string const &getHost( void ) const;
-		void	setHost( std::string const &host );
 
 		std::string const &getPath( void ) const;
 		void	setPath( std::string const &path );

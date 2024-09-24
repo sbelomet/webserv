@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Manager.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 12:46:56 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/19 10:32:28 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/24 14:38:32 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,12 +34,15 @@ class Manager
 
 		bool	epollWaiting( Server &server );
 		void	epollStarting( Server &server );
+
 		void	manageResponse( httpRequest const &request,
 			HttpResponse &response, Config &config );	
 		void	readRequest( Server &server, int const &fd );
 		void	sendingError( HttpResponse &response, Config &config,
 			std::string const &statusCode );
+		//void	sendingError( HttpResponse &response, Config &config );
 		bool	acceptConnection( Server &server, int const &socketServer );
+		void	forbiddenMethodGet( HttpResponse &response, Config &config );
 		void	waitingForResponse( Server &server, httpRequest const &request,
 			int const &fd );
 	public:

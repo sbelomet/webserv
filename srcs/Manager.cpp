@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 13:34:10 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/23 15:40:53 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/24 14:39:18 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,30 +124,63 @@ void	Manager::epollStarting( Server &server )
 	}
 }
 
+void	Manager::forbiddenMethodGet( HttpResponse &response, Config &config )
+{
+	std::string location;
+	response.getHeader().modifyHeadersMap("Content-Type: ", "text/html");
+	std::map<short, std::string>	errorPages = config.getErrorPages();
+	std::map<short, std::string>::const_iterator	it = errorPages.find(405);
+	if (it == errorPages.end())
+	{
+		location = "/error_pages/405.html";
+		response.setFilePath(concatenateRoot(config.getRoot(), location));
+	}
+	else
+	{
+		int	fd;
+		location = it->second;
+		std::string const	toTest = concatenateRoot(config.getRoot(), location);
+		std::cout << "toTest: " << toTest << std::endl;
+		if ((fd = open(toTest.c_str(), O_RDWR)) == -1)
+		{
+			close(fd);
+			response.setFilePath(concatenateRoot(config.getRoot(), "/error_pages/404.html"));
+		}
+		else
+		{
+			close(fd);
+			response.setFilePath(concatenateRoot(config.getRoot(), location));
+		}
+	}
+}
+
 void	Manager::manageResponse( httpRequest const &request,
 	HttpResponse &response, Config &config )
 {
-	if (response.getRequestStatusCode() == 400 || response.getRequestStatusCode() == 404
-		|| response.getRequestStatusCode() == 413)
-	{
-		std::cout << "request ERROR" << std::endl;
+	if (response.getRequestStatusCode() != 200)
 		return (response.getHeader().updateStatus(response.getRequestStatusCode()));
-	}
 	Location	location = config.getSingleLocation(response.getPath());
 	if (!location.isAllowedMethod(response.getMethod()))
-		return (response.getHeader().updateStatus(405));
+	{
+		if (response.getMethod() == "GET")
+		{
+			forbiddenMethodGet(response, config);
+			if (!response.sendWithBody())
+				throw (Webserv::NoException());
+			return ;
+		}
+		else
+			return (response.getHeader().updateStatus(405));
+	}
 	if (!request.getBody().empty())
 	{
 		size_t	clientMaxBodySize = location.getMaxClientBody();
-		std::cout << "clientMaxBodySize: " << clientMaxBodySize << std::endl;
 		if (clientMaxBodySize > 1)
 			clientMaxBodySize = clientMaxBodySize * 1024;
 		else
 			clientMaxBodySize = 1024;
 		clientMaxBodySize = clientMaxBodySize * 1024;
-		std::cout << "clientMaxBodySize: " << clientMaxBodySize << std::endl;
 		size_t const	bodysize = request.getBody().size();
-		std::cout << "bodysize: " << bodysize << std::endl;
 		if (bodysize > clientMaxBodySize)
 			return (response.getHeader().updateStatus(413));
 		response.setMaxClientBodySize(clientMaxBodySize);
@@ -156,26 +189,25 @@ void	Manager::manageResponse( httpRequest const &request,
 	{
 		Mime	mime;
 		std::string extension = extractPathExtension(response.getFilePath());
-		std::string	mimeType = mime.getMimeType(extension);
+		std::string	mimeType = mime.getMimeType(extension, response.getHeader().getAcceptTypefiles());
+		if (mimeType == "406")
+			return (response.getHeader().updateStatus(406));
 		response.getHeader().modifyHeadersMap("Content-Type: ", mimeType);
-		if (!response.getFilePath().empty())
-			response.setBodysize(fileSize(response.getFilePath()));
 		if (response.getToRedir())
 		{
-			//std::cout << "REDIR" << std::endl;
-			response.updateHeader();
+			std::cout << "REDIR" << std::endl;
 			if (!response.sendHeader())
 				throw (Webserv::NoException());
 		}
 		else if (response.getAutoindex())
 		{
-			//std::cout << "AUTOINDEX" << std::endl;
+			std::cout << "AUTOINDEX" << std::endl;
 			if (!response.sendAutoIndex())
 				throw (Webserv::NoException());
 		}
 		else if (response.getIsCgi())
 		{
-			//std::cout << "CGI" << std::endl;
+			std::cout << "CGI" << std::endl;
 			CGI cgi;
 			std::map<std::string, std::string> env;
 			cgi.setupCGI(request, response.getFilePath(), location);
@@ -188,6 +220,7 @@ void	Manager::manageResponse( httpRequest const &request,
 				return (response.getHeader().updateStatus(atoi(env["REDIRECT_STATUS"].c_str())));
 
 			response.updateHeader();
+			std::cout << "output: " << cgi.getOutput() << std::endl;
 			std::stringstream	ss;
 			ss << cgi.getOutput().size();
 			response.getHeader().modifyHeadersMap("Content-Length: ", ss.str());
@@ -196,17 +229,14 @@ void	Manager::manageResponse( httpRequest const &request,
 		}
 		else
 		{
-			//std::cout << "GET" << std::endl;
-			if (response.getBodysize() > response.getMaxClientBodySize())
-				return (response.getHeader().updateStatus(413));
-			response.updateHeader();
+			std::cout << "GET" << std::endl;
 			if (!response.sendWithBody())
 				throw (Webserv::NoException());
 		}
 	}
 	else
 	{
-		std::cout << "path ERROR" << std::endl;
+		std::cout << "ERROR" << std::endl;
 	}
 }
 
@@ -233,6 +263,7 @@ void	Manager::sendingError( HttpResponse &response, Config &config,
 		int	fd;
 		location = it->second;
 		std::string const	toTest = concatenateRoot(config.getRoot(), location);
+		std::cout << "toTest: " << toTest << std::endl;
 		if ((fd = open(toTest.c_str(), O_RDWR)) == -1)
 		{
 			close(fd);
@@ -246,11 +277,52 @@ void	Manager::sendingError( HttpResponse &response, Config &config,
 				location);
 		}
 	}
-	std::cout << "location: " << location << std::endl;
-	response.updateHeader();
+	//std::cout << "location: " << location << std::endl;
 	if (!response.sendHeader())
 		throw (Webserv::NoException());
 }
+
+/*void	Manager::sendingError( HttpResponse &response, Config &config )
+{
+	std::stringstream	ss;
+	std::string			location;
+	const short			code = response.getRequestStatusCode();
+
+	ss << code;
+	response.getHeader().updateStatus(301);
+	response.getHeader().modifyHeadersMap("Content-Type: ", "text/html");
+	std::map<short, std::string>	errorPages = config.getErrorPages();
+	std::map<short, std::string>::const_iterator	it = errorPages.find(code);
+	if (it == errorPages.end())
+	{
+		location = "/error_pages/" + ss.str() + ".html";
+		response.getHeader().modifyHeadersMap("Location: ", location);
+	}
+	else
+	{
+		int	fd;
+		location = it->second;
+		std::string const	toTest = concatenateRoot(config.getRoot(), location);
+		if ((fd = open(toTest.c_str(), O_RDWR)) == -1)
+		{
+			close(fd);
+			response.getHeader().modifyHeadersMap("Location: ",
+				"/error_pages/404.html");
+		}
+		else
+		{
+			close(fd);
+			response.getHeader().modifyHeadersMap("Location: ",
+				location);
+		}
+	}
+	response.getHeader().modifyHeadersMap("Connection: ", "close");
+	response.getHeader().setFirstLine(response.getHeader().getStatusCode()
+		+ " " + response.getHeader().getInfoStatusCode() + "\n");
+	response.getHeader().modifyHeadersMap("Content-Length: ", "0");
+	if (!response.sendHeader())
+		throw (Webserv::NoException());
+}*/
 
 void	Manager::waitingForResponse( Server &server, httpRequest const &request,
 	int const &fd )
@@ -261,14 +333,12 @@ void	Manager::waitingForResponse( Server &server, httpRequest const &request,
 	
 	config = configs[socketIndex];
 	HttpResponse	response(request, fd);
-	std::cout << "response status: " << response.getRequestStatusCode() << std::endl;
+	//if (response.getRequestStatusCode() != 200)
+	//	sendingError( response, config );
 	manageResponse(request, response, config);
 	std::string const	statusCode = response.getHeader().getStatusCode();
-	std::cout << "statusCode: " << statusCode << std::endl;
 	if (statusCode != "200" && statusCode != "301")
 		sendingError( response, config, statusCode );
-	//else
-	//	std::cout << "DONE" << std::endl;
 	if (response.getHeader().getHeaders()["Connection: "] == "close")
 	{
 		epoll_ctl(server.getEpollFd(), EPOLL_CTL_DEL, fd, NULL);
@@ -309,7 +379,6 @@ void	Manager::readRequest( Server &server, int const &fd )
 		perror("read failed");
 		epoll_ctl(server.getEpollFd(), EPOLL_CTL_DEL, fd, NULL);
 		close(fd);
-		return ;
 		throw (Webserv::NoException());
 	}
 	httpRequest	request;

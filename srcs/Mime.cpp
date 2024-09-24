@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Mime.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/06 14:43:31 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/13 14:57:46 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/24 11:16:46 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,15 +92,34 @@ void	Mime::initMimeTypes()
 	_mimeTypes["default"] = "text/html";
 }
 
-std::string	Mime::getMimeType( std::string const &extension )
+std::string	Mime::getMimeType( std::string const &extension, std::string const &acceptList )
 {
 	std::map<std::string, std::string>::const_iterator	it;
+	std::string chosenType = _mimeTypes["default"];
 
 	if (extension[0] == '.')
-		return (getMimeType(extension.substr(1)));
+		return (getMimeType(extension.substr(1), acceptList));
 
 	it = _mimeTypes.find(extension);
 	if (it != _mimeTypes.end())
-		return (it->second);
-	return (_mimeTypes["default"]);
+		chosenType = it->second;
+	
+	// empty accept header is treated as accept all (*/*)
+	if (acceptList.empty())
+		return (chosenType);
+	
+	std::vector<std::string>	accepts = vecSplit(acceptList, ',');
+	for (size_t i = 0; i < accepts.size(); i++)
+	{
+		// ignore quality factor sorryz
+		std::string::size_type pos = accepts[i].find(';');
+		if (pos != std::string::npos)
+			accepts[i] = accepts[i].substr(0, pos);
+
+		if (accepts[i] == "*/*")
+			return (chosenType);
+		if (accepts[i] == chosenType)
+			return (chosenType);
+	}
+	return ("406");
 }

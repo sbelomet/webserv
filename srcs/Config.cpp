@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:09 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/19 15:13:43 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/24 13:11:13 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -524,6 +524,11 @@ void	Config::parseKeywordErrorPage( std::vector<std::string> const &values, int 
 	if (values[0].find_first_not_of("0123456789") != std::string::npos || values[0].size() != 3)
 	{
 		std::cerr << "ERROR on line " << lineCount << ": Invalid error number" << std::endl;
+		throw Webserv::NoException();
+	}
+	if (values[1][0] != '/')
+	{
+		std::cerr << "ERROR on line " << lineCount << ": Error page must start with a slash" << std::endl;
 		throw Webserv::NoException();
 	}
 	short errorNum = std::atoi(values[0].c_str());

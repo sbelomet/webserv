@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpHeader.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 13:38:03 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/18 15:21:37 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/24 12:20:02 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,6 +188,10 @@ void	HttpHeader::updateStatus( short const &statusCode )
 			setStatusCode("405");
 			setInfoStatusCode("Method Not Allowed");
 			break;
+		case 406:
+			setStatusCode("406");
+			setInfoStatusCode("Not Acceptable");
+			break;
 		case 413:
 			setStatusCode("413");
 			setInfoStatusCode("Payload Too Large");
@@ -199,6 +203,22 @@ void	HttpHeader::updateStatus( short const &statusCode )
 		case 500:
 			setStatusCode("500");
 			setInfoStatusCode("Internal Server Error");
+			break;
+		case 501:
+			setStatusCode("501");
+			setInfoStatusCode("Not Implemented");
+			break;
+		case 502:
+			setStatusCode("502");
+			setInfoStatusCode("Bad Gateway");
+			break;
+		case 503:
+			setStatusCode("503");
+			setInfoStatusCode("Service Unavailable");
+			break;
+		case 504:
+			setStatusCode("504");
+			setInfoStatusCode("Gateway Timeout");
 			break;
 		default:
 			break;

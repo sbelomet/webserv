@@ -3,6 +3,13 @@
     box-sizing: border-box;
 }
 
+body {
+	height: 100vh;
+	background: linear-gradient(to bottom, #91112b, #29030a);
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+}
+
 head {
     margin: 1rem;
 }
@@ -10,6 +17,7 @@ head {
 h1 {
     text-align: center;
     font-size: 8rem;
+	color: #ffe0e7;
 }
 
 section {
@@ -31,4 +39,15 @@ article {
     to {
       text-shadow: 0 0 15px #fff, 0 0 25px #93233a, 0 0 35px #93233a, 0 0 45px #93233a, 0 0 55px #93233a, 0 0 65px #93233a, 0 0 75px #93233a;
     }
+}
+
+img {
+	display: block;
+	margin: 0 auto;
+	width: 50%;
+}
+
+footer {
+	margin: 1rem;
+	text-align: center;
 }

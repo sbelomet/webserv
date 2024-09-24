@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:36 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/23 15:49:57 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/24 11:41:50 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@ HttpResponse const	&HttpResponse::operator=( HttpResponse const &copy )
         setHeader(copy.getHeader());
 		setFd(copy.getFd());
 		setIsOk(copy.getFd());
-		setHost(copy.getHost());
 		setPath(copy.getPath());
 		setIsCgi(copy.getIsCgi());
 		setMethod(copy.getMethod());
@@ -46,17 +45,21 @@ HttpResponse const	&HttpResponse::operator=( HttpResponse const &copy )
 }
 
 HttpResponse::HttpResponse( httpRequest const &request, int const &fd ):
-    _header(HttpHeader()), _fd(fd), _isOk(true), _host(std::string()),
-	_path(request.getPath()), _isCgi(false), _method(request.getMethod()), _toRedir(false),
-	_filePath(std::string()), _mimeType("text/html"), _bodySize(0), _autoindex(false),
-	_requestStatusCode(request.getStatusCode()), _maxClientBodySize(1024 * 1024)
+    _header(HttpHeader()), _fd(fd), _isOk(true), _isCgi(false), _toRedir(false),
+	_filePath(std::string()), _mimeType("text/html"), _bodySize(0),
+	_autoindex(false), _requestStatusCode(request.getStatusCode()),
+	_maxClientBodySize(1024 * 1024)
 {
-    getHeader().setProtocol(request.getVersion());
-	std::map<std::string, std::string>	headers = request.getHeaders();
-	setHost(headers["host"]);
-	getHeader().setAcceptTypefiles(headers["accept"]);
-	getHeader().modifyHeadersMap("Connection: ", headers["connection"]);
-	getHeader().updateStatus(request.getStatusCode());
+	if (getRequestStatusCode() == 200)
+	{
+		setPath(request.getPath());	
+		setMethod(request.getMethod());
+		getHeader().updateStatus(200);
+		getHeader().setProtocol(request.getVersion());
+		std::map<std::string, std::string>	headers = request.getHeaders();
+		getHeader().setAcceptTypefiles(headers["accept"]);
+		getHeader().modifyHeadersMap("Connection: ", headers["connection"]);
+	}
 }
 
 /*  */
@@ -101,11 +104,6 @@ size_t const &HttpResponse::getBodysize( void ) const
 	return (_bodySize);
 }
 
-std::string const &HttpResponse::getHost( void ) const
-{
-	return (_host);
-}
-
 std::string const &HttpResponse::getPath( void ) const
 {
 	return (_path);
@@ -129,11 +127,6 @@ HttpHeader const &HttpResponse::getHeader( void ) const
 std::string const &HttpResponse::getMethod( void ) const
 {
 	return (_method);
-}
-
-void	HttpResponse::setHost( std::string const &host )
-{
-	_host = host;
 }
 
 void	HttpResponse::setPath( std::string const &path )
@@ -341,26 +334,43 @@ static std::string	addEnding( std::string const &name )
 	else if (name == "..")
 		ending = name + "/" + "</a> ";
 	else
-		ending = name + std::string((space - name.size()), ' ') + "</a>" ;
+		ending = name + "</a>" ;
 	return (ending);
 }
 
-/* static	std::string	backwardRoot( std::string const &path,
-	std::string const &filePath )
+static	std::string	backwardRoot( std::string const &path )
 {
-	std::vector<std::string>	rootWords = vecSplit(filePath, '/');
+	size_t						index;
+	std::string					result = "";
 	std::vector<std::string>	pathWords = vecSplit(path, '/');
-	std::string	result = root.substr(0, (root.size() - 1));
-	result = "/" + result;
+	std::string					lastWord = pathWords[pathWords.size() - 1];
+
+	for (size_t i = 0; i < pathWords.size(); i++)
+	{
+		if (pathWords[i] == lastWord)
+		{
+			index = i;
+			break ;
+		}	
+	}
+	if (index == 0)
+	{
+		result = "/";
+		return (result);
+	}
+	for (size_t i = 0; i < index; i++)
+	{
+		result += "/" + pathWords[i];
+	}
 	return (result);
-} */
+}
 
 std::string	HttpResponse::buildLine( std::string const &name, int const &type )
 {
 	std::string	line;
 	line = "\t\t\t<div id=\"anchors\">";
 	if (type == DT_DIR && name == "..")
-		line += "\t\t\t\t<a href=\"" + getPath() + "\" > " + addEnding(name); // TO DO
+		line += "\t\t\t\t<a href=\"" + backwardRoot(getPath()) + "\" > " + addEnding(name);
 	else if (type == DT_DIR)
 		line += "\t\t\t\t<a href=\"" + getPath() + "/" + name + "\" > " + addEnding(name);
 	else if (type == DT_REG)
@@ -462,14 +472,16 @@ bool	HttpResponse::sendWithBody( void )
 	std::ifstream   infile(getFilePath().c_str());
 	if (!infile.is_open())
 		throw (Webserv::FileException());
-	
+	setBodysize(fileSize(getFilePath()));
 	std::string	line;
+	updateHeader();
 	std::string	toSend = getHeader().composeHeader();
 	toSend += "\n";
 	while (std::getline(infile, line))
 	{
 		toSend += line + "\n";
 	}
+	//std::cout << toSend << std::endl;
 	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
 	{
 		perror("send()");
@@ -495,6 +507,7 @@ bool	HttpResponse::sendCgiOutput( std::string const &output )
 
 bool	HttpResponse::sendHeader( void )
 {
+	updateHeader();
 	std::string const	toSend = getHeader().composeHeader();
 	std::cout << "toSend: " << toSend << std::endl;
 	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
@@ -509,8 +522,11 @@ void	HttpResponse::updateHeader( void )
 {
 	if (getHeader().getStatusCode() != "200")
 		getHeader().modifyHeadersMap("Connection: ", "close");
+	if (getHeader().getProtocol().empty())
+		getHeader().setProtocol("HTTP/1.1");
 	getHeader().setFirstLine(getHeader().getProtocol() + " " + getHeader().getStatusCode()
 		+ " " + getHeader().getInfoStatusCode() + "\n");
+	std::cout << "first line: " << getHeader().getFirstLine() << std::endl;
 	if (getBodysize() != 0)
 	{
 		std::stringstream	ss;

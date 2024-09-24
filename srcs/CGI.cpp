@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 10:43:35 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/23 14:29:27 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/24 12:49:36 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -220,18 +220,29 @@ void CGI::executeCGI(std::string const &body)
 		}
 		else
 		{
-			fclose(tmpfile);
-			fclose(bodyfile);
+			std::cout << "CGI timeout" << std::endl;
 			kill(execPID, SIGKILL);
+			_env["REDIRECT_STATUS"] = "504";
+			if (write(tmpfd, "CGI timeout", 11) == -1)
+			{
+				perror("write()");
+				throw (Webserv::NoException());
+			}
 		}
-		wait(NULL);
+		close(bodyfd);
 		close(tmpfd);
+		wait(NULL);
 		throw (Webserv::NoException());
 
 	}
 	else
 	{
 		waitpid(pid, &status, 0);
+	}
+
+	if (WIFEXITED(status))
+	{
+		std::cout << "exit status: " << WEXITSTATUS(status) << std::endl;
 	}
 
 	char buffer[1024];
@@ -242,6 +253,8 @@ void CGI::executeCGI(std::string const &body)
 			break;
 		_output += buffer;
 	}
+	if (_output == "CGI timeout")
+		_env["REDIRECT_STATUS"] = "504";
 	close(bodyfd);
 	close(tmpfd);
 	fclose(bodyfile);
