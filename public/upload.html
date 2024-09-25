@@ -61,11 +61,12 @@
 	<section>
 		<article>
 			<h3>Upload a file</h3>
-			<form action="../cgi-bin/upload.py" method="post" enctype="multipart/form-data">
-				<input type="file" name="file" id="file">
+			<form id="upload-form" enctype="multipart/form-data">
+				<input type="file" name="file" id="file-upload">
 				<input type="submit" value="Upload">
 			</form>
 		</article>
+		<script type="text/javascript" src="./js/upload.js"></script>
 		<br>
 		<article>
 			<h3>Send us a message</h3>

@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:16:09 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/24 13:11:13 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/25 14:33:24 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -686,6 +686,11 @@ void	Config::parseKeywordCgiPass( std::vector<std::string> const &values, int co
 		if (std::count(_locations[_locationIndex].getCgiPass().begin(), _locations[_locationIndex].getCgiPass().end(), values[i]))
 		{
 			std::cerr << "ERROR on line " << lineCount << ": Duplicate CGI pass values forbidden" << std::endl;
+			throw Webserv::NoException();
+		}
+		if(values[i][0] != '/')
+		{
+			std::cerr << "ERROR on line " << lineCount << ": CGI pass value must start with a slash" << std::endl;
 			throw Webserv::NoException();
 		}
 		_locations[_locationIndex].pushCgiPass(values[i]);

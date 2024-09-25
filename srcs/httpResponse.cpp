@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
+/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:36 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/24 11:41:50 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/25 15:40:21 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,6 @@ HttpResponse const	&HttpResponse::operator=( HttpResponse const &copy )
 		setBodysize(copy.getBodysize());
 		setAutoindex(copy.getAutoindex());
 		setRequestStatusCode(copy.getRequestStatusCode());
-		setMaxClientBodySize(copy.getMaxClientBodySize());
     }
 	return (*this);
 }
@@ -47,8 +46,7 @@ HttpResponse const	&HttpResponse::operator=( HttpResponse const &copy )
 HttpResponse::HttpResponse( httpRequest const &request, int const &fd ):
     _header(HttpHeader()), _fd(fd), _isOk(true), _isCgi(false), _toRedir(false),
 	_filePath(std::string()), _mimeType("text/html"), _bodySize(0),
-	_autoindex(false), _requestStatusCode(request.getStatusCode()),
-	_maxClientBodySize(1024 * 1024)
+	_autoindex(false), _requestStatusCode(request.getStatusCode())
 {
 	if (getRequestStatusCode() == 200)
 	{
@@ -59,6 +57,16 @@ HttpResponse::HttpResponse( httpRequest const &request, int const &fd ):
 		std::map<std::string, std::string>	headers = request.getHeaders();
 		getHeader().setAcceptTypefiles(headers["accept"]);
 		getHeader().modifyHeadersMap("Connection: ", headers["connection"]);
+	}
+	else
+	{
+		setPath("/");	
+		setMethod("GET");
+		getHeader().updateStatus(400);
+		getHeader().setProtocol("HTTP/1.1");
+		std::map<std::string, std::string>	headers = request.getHeaders();
+		getHeader().setAcceptTypefiles("*/*");
+		getHeader().modifyHeadersMap("Connection: ", "close");
 	}
 }
 
@@ -174,11 +182,6 @@ short const &HttpResponse::getRequestStatusCode( void ) const
 	return (_requestStatusCode);
 }
 
-size_t const &HttpResponse::getMaxClientBodySize( void ) const
-{
-	return (_maxClientBodySize);
-}
-
 void	HttpResponse::setMimeType( std::string const &mimeType )
 {
 	_mimeType = mimeType;
@@ -192,11 +195,6 @@ void	HttpResponse::setFilePath( std::string const &filePath )
 void	HttpResponse::setRequestStatusCode( short const &requestStatusCode )
 {
 	_requestStatusCode = requestStatusCode;
-}
-
-void	HttpResponse::setMaxClientBodySize( size_t const &maxClientBodySize )
-{
-	_maxClientBodySize = maxClientBodySize;
 }
 
 bool	HttpResponse::checkPath( Location location,
@@ -234,6 +232,7 @@ bool	HttpResponse::checkPath( Location location,
 		return (false);
 	}
 	close(fd);
+	//std::cout << "IS A FILE" << std::endl;
 	setFilePath(rootPath);
 	return (true);
 }
@@ -269,7 +268,7 @@ bool	HttpResponse::treatResponsePath( Location location )
 	{
 		std::remove(concatenateRoot(location, getPath()).c_str());
 		std::cout << GREEN << "file deleted" << RESET << std::endl;
-		setFilePath("./public/deleted.html");
+		getHeader().updateStatus(204);
 		return (true);
 	}
 	if (!location.getCgiPass().empty())
@@ -469,6 +468,7 @@ bool	HttpResponse::sendAutoIndex( void )
 
 bool	HttpResponse::sendWithBody( void )
 {
+	//std::cout << "SEND WITH BODY" << std::endl;
 	std::ifstream   infile(getFilePath().c_str());
 	if (!infile.is_open())
 		throw (Webserv::FileException());
@@ -505,11 +505,29 @@ bool	HttpResponse::sendCgiOutput( std::string const &output )
 	return (true);
 }
 
+bool	HttpResponse::sendNoNotFound( void )
+{
+	std::string	toSend;
+	toSend = "HTTP/1.1 404 Not Found\n";
+	toSend += "Content-Type: text/html\n";
+	toSend += "Content-Length: 46\n";
+	toSend += "\n";
+	toSend += "<h1>Can't even find the 404 page damn :(</h1>\n";
+	std::cout << "toSend: " << toSend << std::endl;
+	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
+	{
+		perror("send()");
+		return (false);
+	}
+	return (true);
+}
+
 bool	HttpResponse::sendHeader( void )
 {
 	updateHeader();
+	//std::cout << "SEND ONLY HEADER" << std::endl;
 	std::string const	toSend = getHeader().composeHeader();
-	std::cout << "toSend: " << toSend << std::endl;
+	//std::cout << toSend << std::endl;
 	if (send(getFd(), toSend.c_str(), toSend.size(), 0) < 0)
 	{
 		perror("send()");
@@ -526,7 +544,6 @@ void	HttpResponse::updateHeader( void )
 		getHeader().setProtocol("HTTP/1.1");
 	getHeader().setFirstLine(getHeader().getProtocol() + " " + getHeader().getStatusCode()
 		+ " " + getHeader().getInfoStatusCode() + "\n");
-	std::cout << "first line: " << getHeader().getFirstLine() << std::endl;
 	if (getBodysize() != 0)
 	{
 		std::stringstream	ss;

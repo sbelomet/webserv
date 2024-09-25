@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 10:09:19 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/19 15:47:19 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/25 12:38:20 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,10 @@ button.addEventListener("click", () => {
 	})
 		.then(response => {
 			if (response.ok) {
-				console.log("chill.txtx deleted successfully");
+				console.log("chill.txt deleted successfully");
 			} else {
 				console.error("Failed to delete chill.txt");
+				window.alert("Couldn't find file to delete");
 			}
 		})
 		.catch(error => {

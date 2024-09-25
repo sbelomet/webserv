@@ -1,7 +1,7 @@
 import cgi
 import os
 
-SIZE_LIMIT = 200000
+SIZE_LIMIT = 150000
 
 # Set the upload directory
 UPLOAD_DIR = "uploads/"

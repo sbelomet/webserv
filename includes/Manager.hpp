@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 12:46:56 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/24 14:38:32 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/25 13:34:21 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ class Manager
 			HttpResponse &response, Config &config );	
 		void	readRequest( Server &server, int const &fd );
 		void	sendingError( HttpResponse &response, Config &config,
-			std::string const &statusCode );
+			std::string const &statusCode, bool const beforeManageResponse );
 		//void	sendingError( HttpResponse &response, Config &config );
 		bool	acceptConnection( Server &server, int const &socketServer );
 		void	forbiddenMethodGet( HttpResponse &response, Config &config );

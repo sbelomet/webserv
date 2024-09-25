@@ -6,7 +6,7 @@
 /*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 10:28:01 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/19 15:13:21 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/25 14:11:07 by lgosselk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,6 @@ std::vector<Config>	MapConfig::mappingConfigs( std::string const &filepath )
 
 	std::string	line;
 	int			lineCount = 0;
-	//int			serverCount = 0;
 	while (std::getline(infile, line))
 	{
 		lineCount++; // increment line count
@@ -128,7 +127,6 @@ std::vector<Config>	MapConfig::mappingConfigs( std::string const &filepath )
 				checkValidConfig(config);
 				configs.push_back(config);
 				//std::cout << config << std::endl;
-				return (configs);
 			}
 			if (it == line.end())
 				break;

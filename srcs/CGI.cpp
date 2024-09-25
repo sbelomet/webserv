@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 10:43:35 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/24 12:49:36 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/25 14:59:28 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -222,7 +222,6 @@ void CGI::executeCGI(std::string const &body)
 		{
 			std::cout << "CGI timeout" << std::endl;
 			kill(execPID, SIGKILL);
-			_env["REDIRECT_STATUS"] = "504";
 			if (write(tmpfd, "CGI timeout", 11) == -1)
 			{
 				perror("write()");

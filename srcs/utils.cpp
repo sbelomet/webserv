@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/21 10:32:48 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/24 09:36:49 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/25 14:00:34 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,5 +174,46 @@ void	strtolower(std::string &str)
 	{
 		if (str[i] >= 'A' && str[i] <= 'Z')
 			str[i] = std::tolower(str[i]);
+	}
+}
+
+std::string const getInfoFromCode( short const code )
+{
+	switch (code)
+	{
+		case 200:
+			return ("OK");
+		case 204:
+			return ("No Content");
+		case 301:
+			return ("Moved Permanently");
+		case 400:
+			return ("Bad Request");
+		case 401:
+			return ("Unauthorized");
+		case 403:
+			return ("Forbidden");
+		case 404:
+			return ("Not Found");
+		case 405:
+			return ("Method Not Allowed");
+		case 406:
+			return ("Not Acceptable");
+		case 413:
+			return ("Payload Too Large");
+		case 418:
+			return ("I'm a teapot");
+		case 500:
+			return ("Internal Server Error");
+		case 501:
+			return ("Not Implemented");
+		case 502:
+			return ("Bad Gateway");
+		case 503:
+			return ("Service Unavailable");
+		case 504:
+			return ("Gateway Timeout");
+		default:
+			return (std::string());
 	}
 }

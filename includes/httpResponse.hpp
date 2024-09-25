@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   httpResponse.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:01:20 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/23 15:51:57 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/25 12:58:10 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,6 @@ class HttpResponse
 		size_t		_bodySize; // size of body response
 		bool		_autoindex; // listing or not directories
 		short		_requestStatusCode; // status code of request at parsing
-		size_t		_maxClientBodySize; // max size body for response
 		
 		HttpResponse( void );
 		HttpResponse( HttpResponse const &copy );
@@ -90,13 +89,11 @@ class HttpResponse
 		short const &getRequestStatusCode( void ) const;
 		void	setRequestStatusCode( short const &requestStatusCode );
 
-		size_t const &getMaxClientBodySize( void ) const;
-		void	setMaxClientBodySize( size_t const &requestStatusCode );
-
 		/* methods */
 		bool	sendHeader( void );
 		void	updateHeader( void );
 		bool	sendWithBody( void );
+		bool	sendNoNotFound( void );
 
 		bool	sendAutoIndex( void );
 		bool	checkPath( Location location,

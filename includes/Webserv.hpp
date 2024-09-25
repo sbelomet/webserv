@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Webserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lgosselk <lgosselk@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/14 10:12:17 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/19 13:48:54 by lgosselk         ###   ########.fr       */
+/*   Updated: 2024/09/25 13:59:03 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ size_t	fileSize( std::string const &file );
 bool	isDirectory( std::string const &path );
 bool	isRegularFile( std::string const &path );
 bool	onlyWhitespaces( const std::string &str );
+std::string const getInfoFromCode( short const code );
 std::string	const concatenateRoot( std::string const &root,
 	std::string const &path );
 std::string	extractPathExtension( std::string const &path );
