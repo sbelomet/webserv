@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 10:09:19 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/25 12:38:20 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/26 12:52:15 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,4 +38,4 @@ button.addEventListener("click", () => {
 		});
 });
 
-document.body.appendChild(button);
+thing.appendChild(button);

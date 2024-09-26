@@ -4,45 +4,10 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>CGI Playground</title>
-	<style>
-		body {
-			height: 100vh;
-			margin: 0;
-			padding: 0;
-		}
-		.bg-img {
-			background-image: url('images/bg_img/goodimage_blurred.jpg');
-			background-size: cover;
-			height: 100vh;
-			margin: 0;
-			padding: 0;
-			position: fixed;
-			width: 100%;
-			z-index: -1;
-		}
-		.head_center {
-			width: 60%;
-			margin: auto;
-			background: rgba(255, 160, 128, 0.482);
-			border-radius: 20px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
-		.home_butt {
-			text-align: center;
-			margin: 1rem;
-		}
-		section {
-			width: 65%;
-			margin: auto;
-			background: rgba(255, 255, 255, 0.8);
-			border-radius: 20px;
-			padding: 1rem;
-			text-align: center;
-			color: red;
-		}
-	</style>
+	<link rel="stylesheet" href="styles/cgi_upload.css">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
 </head>
 <body>
 	<div class="bg-img"></div>
@@ -52,12 +17,13 @@
 		</div>
 		<div class="home_butt">
 			<a href="../index.html"><button>Back to Home</button></a>
+			<a href="../upload.html"><button>Upload & Download</button></a>
 		</div>
 	</header>
 
 	<section>
 		<form action="../cgi-bin/hello.py" method="post">
-			<label for="name">Free greeting, enter your name:</label>
+			<label class="txt-prompt" for="name">Free greeting, enter your name:</label>
 			<input
 				type="text"
 				name="name"
@@ -68,17 +34,17 @@
 		</form>
 		<br>
 		<div>
-			<span>Say hello to the world!!! Click now!!!  </span>
+			<span class="txt-prompt">Say hello to the world!!! Click now!!!  </span>
 			<a href="../cgi-bin/hello.py"><button>OKAY</button></a>
 		</div>
 		<br>
 		<div>
-			<span>Environment variables, who cares!!!</span>
+			<span class="txt-prompt">Environment variables, who cares!!!</span>
 			<a href="../cgi-bin/print_env.py"><button>ME ME ME</button></a>
 		</div>
 		<br>
 		<form action="../cgi-bin/rando.py" method="post">
-			<label>Get yourself a nice number between</label>
+			<label class="txt-prompt">Get yourself a nice number between</label>
 			<input
 				type="number"
 				name="start"
@@ -86,7 +52,7 @@
 				value="0"
 				title="tooltip gang"
 			>
-			<label>and</label>
+			<label class="txt-prompt">and</label>
 			<input
 				type="number"
 				name="end"
@@ -98,17 +64,17 @@
 		</form>
 		<br>
 		<div>
-			<span>Infinite loop, so fun</span>
+			<span class="txt-prompt">Infinite loop, so fun</span>
 			<a href="../cgi-bin/infinity.py"><button>YAY</button></a>
 		</div>
 		<br>
 		<div>
-			<span>Say hello but with Perl  </span>
+			<span class="txt-prompt">Say hello but with Perl  </span>
 			<a href="../cgi-bin/hello_perl.pl"><button>ooooh</button></a>
 		</div>
 		<br>
 		<div>
-			<span>Broken :(</span>
+			<span class="txt-prompt">Broken :(</span>
 			<a href="../cgi-bin/broken.py"><button>yikes</button></a>
 		</div>
 	</section>

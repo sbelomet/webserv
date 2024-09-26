@@ -6,16 +6,60 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 10:24:50 by lgosselk          #+#    #+#             */
-/*   Updated: 2024/09/17 12:58:54 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/26 11:20:18 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+body {
+	font-family: "Roboto", sans-serif;
+	height: 100vh;
+	background: linear-gradient(to bottom, #73EC8B 30%, #326922 100%);
+}
+
 #omega {
-    color: blueviolet;
-    font-size: xx-large;
+    color: #15B392;
+    font-size: 3rem;
 	text-align: center;
+	background-color: #d6f4d2;
+	width: 50%;
+	border-radius: 20px;
+	margin: auto;
+	padding: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+button {
+	background-color: #15B392;
+	color: white;
+	border: none;
+	border-radius: 5px;
+	padding: 10px 20px;
+	margin: 10px;
+	cursor: pointer;
+	text-align: 400;
+}
+
+button:hover {
+	transform: scale(5);
+	transition: all 50s;
 }
 
 section {
 	text-align: center;
+	margin: 2% 0;
+}
+
+img {
+	display: block;
+	margin: 0 auto;
+	width: 50%;
+}
+
+#thing {
+	margin: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }

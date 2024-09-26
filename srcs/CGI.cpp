@@ -6,7 +6,7 @@
 /*   By: sbelomet <sbelomet@42lausanne.ch>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 10:43:35 by sbelomet          #+#    #+#             */
-/*   Updated: 2024/09/25 14:59:28 by sbelomet         ###   ########.fr       */
+/*   Updated: 2024/09/26 11:28:52 by sbelomet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,7 +211,7 @@ void CGI::executeCGI(std::string const &body)
 			sleep(CGITIMEOUT);
 			throw (Webserv::NoException());
 		}
-		pid_t killerPID = wait(NULL);
+		pid_t killerPID = wait(&status);
 		if (killerPID == execPID)
 		{
 			fclose(tmpfile);
@@ -220,7 +220,7 @@ void CGI::executeCGI(std::string const &body)
 		}
 		else
 		{
-			std::cout << "CGI timeout" << std::endl;
+			std::cout << YELLOW << "CGI timeout" << RESET << std::endl;
 			kill(execPID, SIGKILL);
 			if (write(tmpfd, "CGI timeout", 11) == -1)
 			{
@@ -237,11 +237,6 @@ void CGI::executeCGI(std::string const &body)
 	else
 	{
 		waitpid(pid, &status, 0);
-	}
-
-	if (WIFEXITED(status))
-	{
-		std::cout << "exit status: " << WEXITSTATUS(status) << std::endl;
 	}
 
 	char buffer[1024];

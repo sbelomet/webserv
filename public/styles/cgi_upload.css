@@ -1,0 +1,89 @@
+body {
+	font-family: "Roboto", sans-serif;
+	height: 100vh;
+	margin: 0;
+	padding: 0;
+}
+
+.bg-img {
+	background-image: url('../images/bg_img/goodimage_blurred.jpg');
+	background-size: cover;
+	height: 100vh;
+	margin: 0;
+	padding: 0;
+	position: fixed;
+	width: 100%;
+	z-index: -1;
+}
+
+.head_center {
+	width: 60%;
+	margin: auto;
+	background: #ffa080;
+	border: none;
+	border-bottom: 2px solid #e9663a;
+	border-radius: 20px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.5rem;
+}
+
+h3 {
+	color: #a63510;
+}
+
+button, input[type="submit"] {
+	background-color: #ffa080;
+	color: white;
+	border: none;
+	border-bottom: 2px solid #e9663a;
+	border-radius: 5px;
+	padding: 5px 5px;
+	cursor: pointer;
+	text-align: center;
+}
+
+button:hover, input[type="submit"]:hover {
+	transform: scale(1.05);
+	transition: all .05s ease;
+}
+
+input[type='number'] {
+	border: none;
+	border-bottom: 2px solid #e9663a;
+	background-color: #f4d8ce;
+	width: 50px;
+}
+
+.home_butt {
+	text-align: center;
+	margin: 1rem;
+}
+
+section {
+	width: 65%;
+	margin: auto;
+	background: rgba(255, 255, 255, 0.8);
+	border-radius: 20px;
+	padding: 1.5rem;
+	text-align: center;
+}
+
+input[type=text] {
+	border: none;
+	background-color: #f4d8ce;
+	border-bottom: 2px solid #e9663a;
+}
+
+.dlbutton:hover {
+	cursor: pointer;
+	transform: scale(1.05);
+	transition: all .05s ease;
+}
+
+.txt-prompt {
+	font-size: 1.2rem;
+	padding-right: 5px;
+	padding-left: 5px;
+}
